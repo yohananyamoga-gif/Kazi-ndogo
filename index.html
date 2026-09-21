@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kazi Ndogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1712; --ink-soft: #4B584F;
+    --paper: #FBF9F3; --surface: #FFFFFF; --line: #E4E1D6;
+    --emerald: #0B6E4F; --emerald-deep: #084F39;
+    --gold: #F2B705; --gold-deep: #B9860A;
+    --sky: #1C6FA8; --plum: #7A4FA0; --danger: #B23A2E;
+    --cat-survey: var(--sky); --cat-video: var(--gold-deep);
+    --cat-form: var(--emerald); --cat-social: var(--plum); --cat-write: #B2542E;
+  }
+  html { height: 100%; }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    height: 100%; background: var(--paper); color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; display: flex; justify-content: center;
+  }
+  h1, h2, h3 { font-family: 'Sora', sans-serif; }
+  .app { width: 100%; max-width: 430px; min-height: 100vh; background: var(--paper); display: flex; flex-direction: column; position: relative; }
+
+  /* ---- AUTH ---- */
+  #view-auth { display: flex; flex-direction: column; justify-content: center; padding: 32px 24px; min-height: 100vh; }
+  #view-auth h1 { font-size: 1.6rem; margin-bottom: 6px; }
+  #view-auth p.sub { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 24px; }
+  .field { margin-bottom: 12px; }
+  .field label { font-size: 0.78rem; color: var(--ink-soft); font-weight: 600; display: block; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 0.95rem; font-family: 'IBM Plex Sans'; }
+  .btn { border: none; border-radius: 12px; padding: 13px 16px; font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; }
+  .btn-gold { background: var(--gold); color: #21170B; }
+  .btn-block { width: 100%; }
+  .switch-mode { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--ink-soft); }
+  .switch-mode a { color: var(--emerald); font-weight: 600; text-decoration: none; }
+  .auth-error { color: var(--danger); font-size: 0.82rem; margin-top: 8px; min-height: 18px; }
+
+  /* ---- HEADER ---- */
+  header { padding: 20px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+  .greet-name { font-size: 1.05rem; font-weight: 600; }
+  .greet-sub { font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
+  .logout { font-size: 0.78rem; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+
+  .balance-card { margin: 18px 20px 0; padding: 26px 22px; border-radius: 22px; background: linear-gradient(160deg, var(--emerald) 0%, var(--emerald-deep) 100%); color: #F2FBF6; position: relative; overflow: hidden; }
+  .balance-label { font-size: 0.8rem; color: rgba(242,251,246,0.75); }
+  .balance-amount { font-family: 'Sora'; font-weight: 800; font-size: 2.5rem; margin-top: 6px; }
+  .balance-amount .unit { font-size: 1rem; font-weight: 600; color: rgba(242,251,246,0.7); margin-right: 6px; }
+  .balance-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-ghost { background: rgba(255,255,255,0.14); color: #F2FBF6; border: 1px solid rgba(255,255,255,0.25); flex: 1; }
+  .balance-actions .btn-gold { flex: 1; }
+
+  .stats-row { display: flex; gap: 12px; margin: 16px 20px 0; }
+  .stat { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .stat-num { font-family: 'Sora'; font-weight: 700; font-size: 1.3rem; }
+  .stat-label { font-size: 0.76rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .section-head { margin: 26px 20px 12px; }
+  .section-head h2 { font-size: 1.08rem; font-weight: 700; }
+  .filters { display: flex; gap: 8px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+  .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .tasks, .list-pane { padding: 14px 20px 100px; display: flex; flex-direction: column; gap: 10px; }
+  .task { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .task.done { opacity: 0.55; }
+  .task-tag { width: 4px; align-self: stretch; border-radius: 4px; flex-shrink: 0; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-family: 'Sora'; font-weight: 700; font-size: 1.05rem; line-height: 1.28; }
+  .task-meta { font-size: 0.78rem; color: var(--ink-soft); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .task-cat { font-weight: 700; }
+  .task-meta .divider { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+  .task-pay { text-align: right; flex-shrink: 0; padding-left: 10px; }
+  .task-pay .amt { font-family: 'Sora'; font-weight: 800; font-size: 1.1rem; color: var(--emerald); white-space: nowrap; }
+  .task-pay .cur { font-size: 0.68rem; color: var(--ink-soft); display: block; }
+  .task-pay .go { display: inline-block; margin-top: 8px; font-size: 0.76rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; background: var(--ink); color: var(--paper); border: none; cursor: pointer; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--ink-soft); font-size: 0.88rem; }
+  .view { display: none; } .view.active { display: block; }
+
+  .wallet-hero { margin: 18px 20px 0; padding: 22px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); }
+  .wallet-hero .balance-amount { color: var(--ink); } .wallet-hero .unit { color: var(--ink-soft); }
+  .hist-item { display: flex; justify-content: space-between; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .hist-item .t { font-weight: 600; font-size: 0.9rem; }
+  .hist-item .s { font-size: 0.76rem; color: var(--ink-soft); margin-top: 2px; }
+  .a.plus { color: var(--emerald); font-family: 'Sora'; font-weight: 700; }
+  .a.minus { color: var(--danger); font-family: 'Sora'; font-weight: 700; }
+  .badge { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .badge.pending { background: rgba(242,183,5,0.18); color: var(--gold-deep); }
+
+  .profile-card { margin: 18px 20px 0; padding: 20px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); display: flex; gap: 14px; align-items: center; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--emerald); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Sora'; font-weight: 700; font-size: 1.2rem; }
+  .profile-name { font-weight: 700; } .profile-role { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .admin-box { margin: 20px 20px 0; padding: 18px; border-radius: 18px; border: 1px dashed var(--line); }
+  .admin-box h3 { font-size: 0.95rem; margin-bottom: 12px; }
+
+  nav.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--surface); border-top: 1px solid var(--line); display: flex; padding: 10px 8px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--ink-soft); font-size: 0.7rem; font-weight: 600; cursor: pointer; padding: 4px; }
+  .tab .dot { width: 20px; height: 20px; border-radius: 6px; background: var(--line); }
+  .tab.active { color: var(--emerald); } .tab.active .dot { background: var(--emerald); }
+
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(10,15,12,0.5); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+  .sheet-backdrop.open { display: flex; }
+  .sheet { width: 100%; max-width: 430px; background: var(--surface); border-radius: 22px 22px 0 0; padding: 22px 20px 30px; }
+  .sheet input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: 'Sora'; font-size: 1.2rem; font-weight: 700; margin-bottom: 14px; }
+  .sheet-close { width: 100%; text-align: center; padding: 10px; background: none; border: none; color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; z-index: 30; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--ink-soft); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="loading-screen" id="loadingScreen">Inapakia…</div>
+
+  <!-- AUTH -->
+  <div id="view-auth" style="display:none">
+    <h1>Kazi Ndogo</h1>
+    <p class="sub" id="authSub">Ingia kuanza kufanya kazi na kupata pesa</p>
+    <div class="field"><label>Barua pepe</label><input type="email" id="authEmail" placeholder="wewe@mfano.com"></div>
+    <div class="field"><label>Nenosiri</label><input type="password" id="authPass" placeholder="Angalau herufi 6"></div>
+    <button class="btn btn-gold btn-block" id="authSubmit">Ingia</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="switch-mode">Huna akaunti? <a href="#" id="switchToSignup">Jisajili</a></div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" style="display:none">
+    <header>
+      <div>
+        <div class="greet-name" id="greetName">Habari</div>
+        <div class="greet-sub">Karibu tena</div>
+      </div>
+      <button class="logout" id="logoutBtn">Toka</button>
+    </header>
+
+    <div class="view active" id="view-home">
+      <div class="balance-card">
+        <div class="balance-label">Salio lako</div>
+        <div class="balance-amount"><span class="unit">TZS</span><span id="balanceNum">0</span></div>
+        <div class="balance-actions">
+          <button class="btn btn-gold" id="withdrawBtn">Toa Pesa</button>
+          <button class="btn btn-ghost" id="goHistoryBtn">Historia</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Kazi leo</div></div>
+        <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Kazi zote</div></div>
+        <div class="stat"><div class="stat-num">4.8</div><div class="stat-label">Kiwango</div></div>
+      </div>
+      <div class="section-head"><h2>Kazi zinazopatikana</h2></div>
+      <div class="filters" id="filters">
+        <button class="chip active" data-cat="all">Zote</button>
+        <button class="chip" data-cat="survey">Dodoso</button>
+        <button class="chip" data-cat="video">Video</button>
+        <button class="chip" data-cat="form">Fomu</button>
+        <button class="chip" data-cat="social">Mitandao</button>
+        <button class="chip" data-cat="write">Uandishi</button>
+      </div>
+      <div class="tasks" id="taskList"></div>
+    </div>
+
+    <div class="view" id="view-wallet">
+      <div class="wallet-hero">
+        <div class="balance-label" style="color:var(--ink-soft)">Salio lako</div>
+        <div class="balance-amount"><span class="unit">TZS</span><span id="balanceNum2">0</span></div>
+        <button class="btn btn-gold btn-block" style="margin-top:16px" id="withdrawBtn2">Toa Pesa</button>
+      </div>
+      <div class="section-head"><h2>Historia</h2></div>
+      <div class="list-pane" id="historyList"></div>
+    </div>
+
+    <div class="view" id="view-profile">
+      <div class="profile-card">
+        <div class="avatar" id="avatarInit">?</div>
+        <div><div class="profile-name" id="profileName">Mtumiaji</div><div class="profile-role" id="profileRole">Worker</div></div>
+      </div>
+      <div class="admin-box" id="adminBox" style="display:none">
+        <h3>Ongeza kazi mpya (Admin)</h3>
+        <div class="field"><label>Jina la kazi</label><input id="atTitle"></div>
+        <div class="field"><label>Aina</label>
+          <select id="atCat">
+            <option value="survey">Dodoso</option><option value="video">Video</option>
+            <option value="form">Fomu</option><option value="social">Mitandao</option><option value="write">Uandishi</option>
+          </select>
+        </div>
+        <div class="field"><label>Malipo (TZS)</label><input id="atPay" type="number"></div>
+        <div class="field"><label>Muda (dakika)</label><input id="atMin" type="number"></div>
+        <button class="btn btn-gold btn-block" id="addTaskBtn">Ongeza Kazi</button>
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <button class="tab active" data-view="home"><span class="dot"></span>Nyumbani</button>
+      <button class="tab" data-view="wallet"><span class="dot"></span>Wallet</button>
+      <button class="tab" data-view="profile"><span class="dot"></span>Wasifu</button>
+    </nav>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop">
+    <div class="sheet">
+      <h3>Toa pesa</h3>
+      <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:16px">Chini kabisa ni TZS 5,000.</p>
+      <input type="text" inputmode="numeric" id="withdrawInput" placeholder="Kiasi (TZS)">
+      <button class="btn btn-gold btn-block" id="confirmWithdraw">Thibitisha</button>
+      <button class="sheet-close" id="sheetClose">Ghairi</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+  // ==== WEKA FIREBASE CONFIG YAKO HAPA ====
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-MMYvHue82jWv_bGzvfcs6MqFTLezme4",
+    authDomain: "home-online-jobs.firebaseapp.com",
+    projectId: "home-online-jobs",
+    storageBucket: "home-online-jobs.firebasestorage.app",
+    messagingSenderId: "648276796909",
+    appId: "1:648276796909:web:b2ed696b00fb8fb31f33e4"
+  };
+  const ADMIN_EMAIL = "yohananyamoga@gmail.com"; // wewe ndiye admin
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const SEED_TASKS = [
+    { cat: 'survey', title: 'Dodoso kuhusu tabia za ununuzi', pay: 500, minutes: 5 },
+    { cat: 'video', title: 'Tazama tangazo la dakika 2', pay: 200, minutes: 2 },
+    { cat: 'form', title: 'Ingiza taarifa za bidhaa 10', pay: 700, minutes: 8 },
+    { cat: 'social', title: 'Fuata na uweke like ukurasa mmoja', pay: 150, minutes: 1 },
+    { cat: 'write', title: 'Tafsiri maelezo mafupi ya bidhaa', pay: 900, minutes: 10 },
+  ];
+  const CAT_LABEL = { survey: 'Dodoso', video: 'Video', form: 'Fomu', social: 'Mitandao', write: 'Uandishi' };
+  const CAT_COLOR = { survey: 'var(--cat-survey)', video: 'var(--cat-video)', form: 'var(--cat-form)', social: 'var(--cat-social)', write: 'var(--cat-write)' };
+
+  const $ = id => document.getElementById(id);
+  function money(n) { return Math.max(0, Math.round(n || 0)).toLocaleString('sw-TZ'); }
+  function showToast(msg) { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  let currentUser = null, isAdmin = false;
+  let tasksData = [];
+  let wallet = { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] };
+  let activeFilter = 'all';
+  let isSignupMode = false;
+
+  // ---- AUTH UI ----
+  $('switchToSignup').addEventListener('click', (e) => {
+    e.preventDefault();
+    isSignupMode = !isSignupMode;
+    $('authSub').textContent = isSignupMode ? 'Jaza taarifa kujisajili' : 'Ingia kuanza kufanya kazi na kupata pesa';
+    $('authSubmit').textContent = isSignupMode ? 'Jisajili' : 'Ingia';
+    $('switchToSignup').textContent = isSignupMode ? 'Ingia' : 'Jisajili';
+    $('switchToSignup').previousSibling.textContent = isSignupMode ? 'Tayari una akaunti? ' : 'Huna akaunti? ';
+    $('authError').textContent = '';
+  });
+
+  $('authSubmit').addEventListener('click', async () => {
+    const email = $('authEmail').value.trim();
+    const pass = $('authPass').value;
+    $('authError').textContent = '';
+    if (!email || !pass) { $('authError').textContent = 'Jaza barua pepe na nenosiri'; return; }
+    $('authSubmit').disabled = true;
+    try {
+      if (isSignupMode) {
+        await auth.createUserWithEmailAndPassword(email, pass);
+      } else {
+        await auth.signInWithEmailAndPassword(email, pass);
+      }
+    } catch (e) {
+      const map = {
+        'auth/email-already-in-use': 'Barua pepe hii tayari inatumika',
+        'auth/invalid-email': 'Barua pepe si sahihi',
+        'auth/weak-password': 'Nenosiri ni fupi mno (angalau herufi 6)',
+        'auth/user-not-found': 'Akaunti haipo, jisajili kwanza',
+        'auth/wrong-password': 'Nenosiri sio sahihi',
+        'auth/invalid-credential': 'Taarifa si sahihi',
+      };
+      $('authError').textContent = map[e.code] || ('Hitilafu: ' + e.message);
+    }
+    $('authSubmit').disabled = false;
+  });
+
+  $('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  // ---- VIEW SWITCHING ----
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchView(tab.dataset.view)));
+  $('goHistoryBtn').addEventListener('click', () => switchView('wallet'));
+  function switchView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    $('view-' + name).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+  }
+
+  $('filters').addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if (!chip) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active'); activeFilter = chip.dataset.cat; renderTasks();
+  });
+
+  const backdrop = $('sheetBackdrop');
+  function openWithdraw() { backdrop.classList.add('open'); }
+  $('withdrawBtn').addEventListener('click', openWithdraw);
+  $('withdrawBtn2').addEventListener('click', openWithdraw);
+  $('sheetClose').addEventListener('click', () => backdrop.classList.remove('open'));
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
+
+  $('confirmWithdraw').addEventListener('click', async () => {
+    const amount = parseInt(($('withdrawInput').value || '').replace(/[^0-9]/g, ''), 10);
+    if (!amount || amount < 5000) { showToast('Kiasi cha chini ni TZS 5,000'); return; }
+    if (amount > wallet.balance) { showToast('Salio lako haitoshi'); return; }
+    wallet.balance -= amount;
+    wallet.withdrawals = [...(wallet.withdrawals || []), { amount, ts: Date.now(), status: 'pending' }];
+    await saveWallet();
+    $('withdrawInput').value = ''; backdrop.classList.remove('open');
+    showToast('Ombi la kutoa pesa limetumwa');
+  });
+
+  async function completeTask(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task || wallet.completedTaskIds.includes(taskId)) return;
+    wallet.balance = (wallet.balance || 0) + task.pay;
+    wallet.completedTaskIds = [...wallet.completedTaskIds, taskId];
+    wallet.completedLog = [...(wallet.completedLog || []), { title: task.title, pay: task.pay, ts: Date.now() }];
+    renderWallet(); renderTasks();
+    showToast('Umepata TZS ' + money(task.pay) + '!');
+    await saveWallet();
+  }
+
+  async function saveWallet() {
+    try { await db.collection('users').doc(currentUser.uid).set(wallet, { merge: false }); }
+    catch (e) { showToast('Imeshindwa kuhifadhi; angalia mtandao'); }
+  }
+
+  $('addTaskBtn').addEventListener('click', async () => {
+    const title = $('atTitle').value.trim();
+    const pay = parseInt($('atPay').value || '0', 10);
+    const minutes = parseInt($('atMin').value || '0', 10);
+    const cat = $('atCat').value;
+    if (!title || !pay || !minutes) { showToast('Jaza taarifa zote'); return; }
+    try {
+      await db.collection('tasks').add({ cat, title, pay, minutes, createdAt: Date.now() });
+      $('atTitle').value = ''; $('atPay').value = ''; $('atMin').value = '';
+      showToast('Kazi imeongezwa');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+
+  function renderTasks() {
+    const list = $('taskList');
+    const filtered = tasksData.filter(t => activeFilter === 'all' || t.cat === activeFilter);
+    if (!filtered.length) { list.innerHTML = '<div class="empty">Hakuna kazi ya aina hii kwa sasa.</div>'; return; }
+    list.innerHTML = '';
+    filtered.forEach(t => {
+      const done = wallet.completedTaskIds.includes(t.id);
+      const row = document.createElement('div');
+      row.className = 'task' + (done ? ' done' : '');
+      row.innerHTML = `
+        <div class="task-tag" style="background:${CAT_COLOR[t.cat]}"></div>
+        <div class="task-body">
+          <div class="task-title"></div>
+          <div class="task-meta"><span class="task-cat" style="color:${CAT_COLOR[t.cat]}">${CAT_LABEL[t.cat]}</span><span class="divider"></span><span>Dakika ${t.minutes}</span></div>
+        </div>
+        <div class="task-pay">
+          <div class="amt">${money(t.pay)}</div><span class="cur">TZS</span>
+          <button class="go" ${done ? 'disabled' : ''} data-id="${t.id}">${done ? 'Imekamilika' : 'Anza'}</button>
+        </div>`;
+      row.querySelector('.task-title').textContent = t.title; // textContent: task titles are user/admin input
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.go:not(:disabled)').forEach(btn => btn.addEventListener('click', () => completeTask(btn.dataset.id)));
+  }
+
+  function renderWallet() {
+    $('balanceNum').textContent = money(wallet.balance);
+    $('balanceNum2').textContent = money(wallet.balance);
+    const today = new Date().toDateString();
+    $('statToday').textContent = (wallet.completedLog || []).filter(l => new Date(l.ts).toDateString() === today).length;
+    $('statTotal').textContent = wallet.completedTaskIds.length;
+
+    const items = [];
+    (wallet.completedLog || []).forEach(l => items.push({ type: 'task', ts: l.ts, title: l.title, amt: l.pay }));
+    (wallet.withdrawals || []).forEach(w => items.push({ type: 'withdraw', ts: w.ts, amt: w.amount, status: w.status }));
+    items.sort((a, b) => b.ts - a.ts);
+    const hist = $('historyList');
+    if (!items.length) { hist.innerHTML = '<div class="empty">Bado hujafanya kazi wala kuomba malipo.</div>'; return; }
+    hist.innerHTML = '';
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'hist-item';
+      if (it.type === 'task') {
+        row.innerHTML = `<div><div class="t"></div><div class="s"></div></div><div class="a plus">+${money(it.amt)}</div>`;
+        row.querySelector('.t').textContent = it.title;
+        row.querySelector('.s').textContent = new Date(it.ts).toLocaleDateString('sw-TZ');
+      } else {
+        row.innerHTML = `<div><div class="t">Ombi la kutoa pesa</div><div class="s"></div></div><div class="a minus">-${money(it.amt)}</div>`;
+        const s = row.querySelector('.s');
+        s.textContent = new Date(it.ts).toLocaleDateString('sw-TZ') + ' ';
+        const badge = document.createElement('span'); badge.className = 'badge pending'; badge.textContent = it.status === 'approved' ? 'Imelipwa' : 'Inasubiri';
+        s.appendChild(badge);
+      }
+      hist.appendChild(row);
+    });
+  }
+
+  async function seedTasksIfEmpty() {
+    const snap = await db.collection('tasks').limit(1).get();
+    if (snap.empty) { for (const t of SEED_TASKS) { await db.collection('tasks').add({ ...t, createdAt: Date.now() }); } }
+  }
+
+  function subscribeTasks() {
+    db.collection('tasks').orderBy('createdAt', 'asc').onSnapshot(snap => {
+      tasksData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTasks();
+    }, err => showToast('Imeshindwa kupakia kazi: ' + err.message));
+  }
+
+  function subscribeWallet() {
+    db.collection('users').doc(currentUser.uid).onSnapshot(snap => {
+      wallet = snap.exists ? { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [], ...snap.data() } : { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] };
+      renderWallet(); renderTasks();
+    }, err => showToast('Imeshindwa kupakia wallet: ' + err.message));
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    $('loadingScreen').style.display = 'none';
+    if (!user) {
+      currentUser = null;
+      $('mainApp').style.display = 'none';
+      $('view-auth').style.display = 'flex';
+      return;
+    }
+    currentUser = user;
+    isAdmin = (user.email === ADMIN_EMAIL);
+    $('view-auth').style.display = 'none';
+    $('mainApp').style.display = 'block';
+    $('greetName').textContent = 'Habari, ' + user.email.split('@')[0];
+    $('profileName').textContent = user.email;
+    $('profileRole').textContent = isAdmin ? 'Admin / Worker' : 'Worker';
+    $('avatarInit').textContent = user.email.charAt(0).toUpperCase();
+    if (isAdmin) { $('adminBox').style.display = 'block'; await seedTasksIfEmpty(); }
+    subscribeTasks();
+    subscribeWallet();
+  });
+</script>
+</body>
+</html>
