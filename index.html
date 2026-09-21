@@ -115,6 +115,24 @@
   .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; z-index: 30; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
   .toast.show { opacity: 1; }
   .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--ink-soft); font-size: 0.9rem; }
+
+  /* ---- TASK DETAIL SHEET ---- */
+  .task-sheet { max-height: 85vh; overflow-y: auto; }
+  .task-sheet h3 { font-size: 1.15rem; margin-bottom: 4px; }
+  .task-sheet .meta-line { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 14px; }
+  .task-sheet .instructions { font-size: 0.9rem; line-height: 1.5; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+  .video-wrap { position: relative; width: 100%; padding-top: 56.25%; border-radius: 14px; overflow: hidden; background: #000; margin-bottom: 12px; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+  .open-link-btn { display: block; text-align: center; width: 100%; padding: 13px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--sky); font-weight: 600; text-decoration: none; font-size: 0.9rem; margin-bottom: 12px; }
+  .countdown-box { text-align: center; padding: 14px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 14px; font-size: 0.85rem; color: var(--ink-soft); }
+  .countdown-box .num { font-family: 'Sora'; font-weight: 800; font-size: 1.6rem; color: var(--ink); display: block; }
+  .q-block { margin-bottom: 12px; }
+  .q-block label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 6px; }
+  .q-block input, .task-sheet textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans'; font-size: 0.9rem; }
+  .task-sheet textarea { min-height: 90px; resize: vertical; }
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; background: var(--paper); }
+  .check-row input { width: 18px; height: 18px; }
+  .word-count { font-size: 0.75rem; color: var(--ink-soft); text-align: right; margin-top: -8px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -195,6 +213,9 @@
         </div>
         <div class="field"><label>Malipo (TZS)</label><input id="atPay" type="number"></div>
         <div class="field"><label>Muda (dakika)</label><input id="atMin" type="number"></div>
+        <div class="field"><label>Maelekezo ya kazi (yataonekana kwa worker)</label><textarea id="atInstructions" rows="3" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <div class="field"><label>Linki (kwa Video au Mitandao — hiari)</label><input id="atLink" type="url" placeholder="https://..."></div>
+        <div class="field"><label>Maswali (kwa Dodoso/Fomu — moja kila mstari, hiari)</label><textarea id="atQuestions" rows="3" placeholder="Una umri gani?&#10;Unaishi mkoa gani?" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
         <button class="btn btn-gold btn-block" id="addTaskBtn">Ongeza Kazi</button>
       </div>
     </div>
@@ -215,6 +236,16 @@
       <button class="sheet-close" id="sheetClose">Ghairi</button>
     </div>
   </div>
+  <div class="sheet-backdrop" id="taskSheetBackdrop">
+    <div class="sheet task-sheet">
+      <h3 id="tsTitle">Kazi</h3>
+      <div class="meta-line" id="tsMeta"></div>
+      <div id="tsContent"></div>
+      <button class="btn btn-gold btn-block" id="tsSubmit" disabled>Kamilisha Kazi</button>
+      <button class="sheet-close" id="tsClose">Funga</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 </div>
 
@@ -238,11 +269,20 @@
   const db = firebase.firestore();
 
   const SEED_TASKS = [
-    { cat: 'survey', title: 'Dodoso kuhusu tabia za ununuzi', pay: 500, minutes: 5 },
-    { cat: 'video', title: 'Tazama tangazo la dakika 2', pay: 200, minutes: 2 },
-    { cat: 'form', title: 'Ingiza taarifa za bidhaa 10', pay: 700, minutes: 8 },
-    { cat: 'social', title: 'Fuata na uweke like ukurasa mmoja', pay: 150, minutes: 1 },
-    { cat: 'write', title: 'Tafsiri maelezo mafupi ya bidhaa', pay: 900, minutes: 10 },
+    { cat: 'survey', title: 'Dodoso kuhusu tabia za ununuzi', pay: 500, minutes: 3,
+      instructions: 'Jibu maswali mafupi yafuatayo kwa uaminifu.',
+      questions: ['Unanunua vitu mtandaoni mara ngapi kwa mwezi?', 'Ni changamoto gani kubwa unapokutana nayo unaponunua mtandaoni?'] },
+    { cat: 'video', title: 'Tazama video fupi ya elimu', pay: 200, minutes: 2,
+      instructions: 'Tazama video mpaka mwisho kabla ya kubonyeza Kamilisha.',
+      link: 'https://www.youtube.com/watch?v=YE7VzlLtp-4' },
+    { cat: 'form', title: 'Ingiza taarifa za bidhaa 10', pay: 700, minutes: 8,
+      instructions: 'Andika kwa ufupi hatua utakazofuata kuhakikisha data ni sahihi.',
+      questions: ['Umepanga kufanyaje kazi hii?'] },
+    { cat: 'social', title: 'Fuata ukurasa wa mteja wetu', pay: 150, minutes: 1,
+      instructions: 'Fungua linki, fuata ukurasa, kisha thibitisha hapa.',
+      link: 'https://www.instagram.com' },
+    { cat: 'write', title: 'Tafsiri maelezo mafupi ya bidhaa', pay: 900, minutes: 10,
+      instructions: 'Tafsiri maelezo haya kwa Kiingereza kwenda Kiswahili: "This eco-friendly bag is made from recycled materials and lasts for years."' },
   ];
   const CAT_LABEL = { survey: 'Dodoso', video: 'Video', form: 'Fomu', social: 'Mitandao', write: 'Uandishi' };
   const CAT_COLOR = { survey: 'var(--cat-survey)', video: 'var(--cat-video)', form: 'var(--cat-form)', social: 'var(--cat-social)', write: 'var(--cat-write)' };
@@ -329,12 +369,12 @@
     showToast('Ombi la kutoa pesa limetumwa');
   });
 
-  async function completeTask(taskId) {
+  async function completeTask(taskId, proof) {
     const task = tasksData.find(t => t.id === taskId);
     if (!task || wallet.completedTaskIds.includes(taskId)) return;
     wallet.balance = (wallet.balance || 0) + task.pay;
     wallet.completedTaskIds = [...wallet.completedTaskIds, taskId];
-    wallet.completedLog = [...(wallet.completedLog || []), { title: task.title, pay: task.pay, ts: Date.now() }];
+    wallet.completedLog = [...(wallet.completedLog || []), { title: task.title, pay: task.pay, ts: Date.now(), proof: proof || null }];
     renderWallet(); renderTasks();
     showToast('Umepata TZS ' + money(task.pay) + '!');
     await saveWallet();
@@ -350,10 +390,13 @@
     const pay = parseInt($('atPay').value || '0', 10);
     const minutes = parseInt($('atMin').value || '0', 10);
     const cat = $('atCat').value;
+    const instructions = $('atInstructions').value.trim();
+    const link = $('atLink').value.trim();
+    const questions = $('atQuestions').value.split('\n').map(s => s.trim()).filter(Boolean);
     if (!title || !pay || !minutes) { showToast('Jaza taarifa zote'); return; }
     try {
-      await db.collection('tasks').add({ cat, title, pay, minutes, createdAt: Date.now() });
-      $('atTitle').value = ''; $('atPay').value = ''; $('atMin').value = '';
+      await db.collection('tasks').add({ cat, title, pay, minutes, instructions, link, questions, createdAt: Date.now() });
+      $('atTitle').value = ''; $('atPay').value = ''; $('atMin').value = ''; $('atInstructions').value = ''; $('atLink').value = ''; $('atQuestions').value = '';
       showToast('Kazi imeongezwa');
     } catch (e) { showToast('Imeshindwa: ' + e.message); }
   });
@@ -380,8 +423,116 @@
       row.querySelector('.task-title').textContent = t.title; // textContent: task titles are user/admin input
       list.appendChild(row);
     });
-    list.querySelectorAll('.go:not(:disabled)').forEach(btn => btn.addEventListener('click', () => completeTask(btn.dataset.id)));
+    list.querySelectorAll('.go:not(:disabled)').forEach(btn => btn.addEventListener('click', () => openTaskDetail(btn.dataset.id)));
   }
+
+  // ---- TASK DETAIL / PROOF-OF-WORK FLOW ----
+  let tsCountdownTimer = null;
+  let tsWatchDone = false;
+
+  function youtubeEmbed(url) {
+    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  }
+
+  function openTaskDetail(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task || wallet.completedTaskIds.includes(taskId)) return;
+    tsWatchDone = false;
+    if (tsCountdownTimer) clearInterval(tsCountdownTimer);
+    $('tsTitle').textContent = task.title;
+    $('tsMeta').textContent = CAT_LABEL[task.cat] + ' · Malipo TZS ' + money(task.pay) + ' · Dakika ' + task.minutes;
+    $('tsSubmit').disabled = true;
+    $('tsSubmit').dataset.id = taskId;
+
+    let html = '';
+    if (task.instructions) html += `<div class="instructions"></div>`;
+
+    if (task.cat === 'video') {
+      const embed = task.link ? youtubeEmbed(task.link) : null;
+      if (embed) {
+        html += `<div class="video-wrap"><iframe src="${embed}" allow="autoplay" allowfullscreen></iframe></div>`;
+      } else if (task.link) {
+        html += `<a class="open-link-btn" href="${task.link}" target="_blank" rel="noopener">Fungua Video</a>`;
+      }
+      html += `<div class="countdown-box"><span class="num" id="tsCountdownNum">${task.minutes}:00</span>Subiri muda uishe unapotazama, kisha kitufe kitawashwa</div>`;
+    } else if (task.cat === 'social') {
+      if (task.link) html += `<a class="open-link-btn" href="${task.link}" target="_blank" rel="noopener">Fungua Linki</a>`;
+      html += `<div class="check-row"><input type="checkbox" id="tsCheck"><label for="tsCheck">Nimekamilisha kitendo kilichoombwa</label></div>`;
+    } else if ((task.cat === 'survey' || task.cat === 'form') && task.questions && task.questions.length) {
+      task.questions.forEach((q, i) => {
+        html += `<div class="q-block"><label></label><input type="text" class="ts-answer" data-q="${i}"></div>`;
+      });
+    } else if (task.cat === 'write') {
+      html += `<textarea id="tsWriteArea" placeholder="Andika jibu lako hapa..."></textarea><div class="word-count" id="tsWordCount">Maneno 0 / 8 yanahitajika</div>`;
+    } else {
+      // fallback generic proof field
+      html += `<textarea id="tsWriteArea" placeholder="Eleza ulichofanya..."></textarea><div class="word-count" id="tsWordCount">Maneno 0 / 5 yanahitajika</div>`;
+    }
+
+    $('tsContent').innerHTML = html;
+    if (task.instructions) $('tsContent').querySelector('.instructions').textContent = task.instructions;
+    if ((task.cat === 'survey' || task.cat === 'form') && task.questions && task.questions.length) {
+      $('tsContent').querySelectorAll('.q-block label').forEach((lab, i) => lab.textContent = task.questions[i]);
+      $('tsContent').querySelectorAll('.ts-answer').forEach(inp => inp.addEventListener('input', () => validateTaskDetail(task)));
+    }
+    if (task.cat === 'social') {
+      $('tsCheck').addEventListener('change', () => validateTaskDetail(task));
+    }
+    if (task.cat === 'write' || (!['video','social'].includes(task.cat) && !(task.questions && task.questions.length))) {
+      const minWords = task.cat === 'write' ? 8 : 5;
+      $('tsWriteArea').addEventListener('input', () => {
+        const words = $('tsWriteArea').value.trim().split(/\s+/).filter(Boolean).length;
+        $('tsWordCount').textContent = 'Maneno ' + words + ' / ' + minWords + ' yanahitajika';
+        $('tsSubmit').disabled = words < minWords;
+      });
+    }
+    if (task.cat === 'video') {
+      let secondsLeft = task.minutes * 60;
+      tsCountdownTimer = setInterval(() => {
+        secondsLeft--;
+        const mm = Math.floor(Math.max(secondsLeft,0) / 60), ss = Math.max(secondsLeft,0) % 60;
+        const el = $('tsCountdownNum'); if (el) el.textContent = mm + ':' + String(ss).padStart(2,'0');
+        if (secondsLeft <= 0) {
+          clearInterval(tsCountdownTimer); tsWatchDone = true;
+          $('tsSubmit').disabled = false;
+          const box = document.querySelector('.countdown-box'); if (box) box.lastChild.textContent = ' Umemaliza! Bonyeza Kamilisha Kazi.';
+        }
+      }, 1000);
+    }
+    $('taskSheetBackdrop').classList.add('open');
+  }
+
+  function validateTaskDetail(task) {
+    if (task.cat === 'social') { $('tsSubmit').disabled = !$('tsCheck').checked; return; }
+    if ((task.cat === 'survey' || task.cat === 'form') && task.questions && task.questions.length) {
+      const answers = [...$('tsContent').querySelectorAll('.ts-answer')].map(i => i.value.trim());
+      $('tsSubmit').disabled = answers.some(a => !a);
+    }
+  }
+
+  function closeTaskDetail() {
+    if (tsCountdownTimer) clearInterval(tsCountdownTimer);
+    $('taskSheetBackdrop').classList.remove('open');
+  }
+  $('tsClose').addEventListener('click', closeTaskDetail);
+  $('taskSheetBackdrop').addEventListener('click', e => { if (e.target === $('taskSheetBackdrop')) closeTaskDetail(); });
+
+  $('tsSubmit').addEventListener('click', async () => {
+    const taskId = $('tsSubmit').dataset.id;
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task) return;
+    let proof = null;
+    if (task.cat === 'video') proof = { type: 'video_watched' };
+    else if (task.cat === 'social') proof = { type: 'checked' };
+    else if ((task.cat === 'survey' || task.cat === 'form') && task.questions && task.questions.length) {
+      proof = { type: 'answers', answers: [...$('tsContent').querySelectorAll('.ts-answer')].map(i => i.value.trim()) };
+    } else {
+      proof = { type: 'text', text: $('tsWriteArea').value.trim() };
+    }
+    closeTaskDetail();
+    await completeTask(taskId, proof);
+  });
 
   function renderWallet() {
     $('balanceNum').textContent = money(wallet.balance);
