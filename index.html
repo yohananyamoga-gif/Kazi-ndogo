@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kazi Ndogo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B6E4F">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kazi Ndogo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1712; --ink-soft: #4B584F;
+    --paper: #FBF9F3; --surface: #FFFFFF; --line: #E4E1D6;
+    --emerald: #0B6E4F; --emerald-deep: #084F39;
+    --gold: #F2B705; --gold-deep: #B9860A;
+    --sky: #1C6FA8; --plum: #7A4FA0; --danger: #B23A2E;
+    --cat-survey: var(--sky); --cat-video: var(--gold-deep);
+    --cat-form: var(--emerald); --cat-social: var(--plum); --cat-write: #B2542E;
+    --cat-games: #E0575B; --cat-math: #4A6FE3;
+  }
+  html { height: 100%; font-size: 17px; }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    height: 100%; background: var(--paper); color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 1rem;
+    -webkit-font-smoothing: antialiased; display: flex; justify-content: center;
+  }
+  h1, h2, h3 { font-family: 'Sora', sans-serif; }
+  .app { width: 100%; max-width: 430px; min-height: 100vh; background: var(--paper); display: flex; flex-direction: column; position: relative; }
+
+  /* ---- AUTH ---- */
+  #view-auth { display: flex; flex-direction: column; justify-content: center; padding: 32px 24px; min-height: 100vh; }
+  #view-auth h1 { font-size: 1.6rem; margin-bottom: 6px; }
+  #view-auth p.sub { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 24px; }
+  .field { margin-bottom: 12px; }
+  .field label { font-size: 0.78rem; color: var(--ink-soft); font-weight: 600; display: block; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 0.95rem; font-family: 'IBM Plex Sans'; }
+  .btn { border: none; border-radius: 12px; padding: 14px 16px; font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 1rem; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; }
+  .btn-gold { background: var(--gold); color: #21170B; }
+  .btn-block { width: 100%; }
+  .switch-mode { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--ink-soft); }
+  .switch-mode a { color: var(--emerald); font-weight: 600; text-decoration: none; }
+  .auth-error { color: var(--danger); font-size: 0.82rem; margin-top: 8px; min-height: 18px; }
+
+  /* ---- HEADER ---- */
+  header { padding: 20px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+  .greet-name { font-size: 1.15rem; font-weight: 700; }
+  .greet-sub { font-size: 0.88rem; color: var(--ink-soft); margin-top: 2px; }
+  .logout { font-size: 0.78rem; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+
+  .balance-card { margin: 18px 20px 0; padding: 26px 22px; border-radius: 22px; background: linear-gradient(160deg, var(--emerald) 0%, var(--emerald-deep) 100%); color: #F2FBF6; position: relative; overflow: hidden; }
+  .balance-label { font-size: 0.8rem; color: rgba(242,251,246,0.75); }
+  .balance-amount { font-family: 'Sora'; font-weight: 800; font-size: 2.5rem; margin-top: 6px; }
+  .balance-amount .unit { font-size: 1rem; font-weight: 600; color: rgba(242,251,246,0.7); margin-right: 6px; }
+  .balance-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-ghost { background: rgba(255,255,255,0.14); color: #F2FBF6; border: 1px solid rgba(255,255,255,0.25); flex: 1; }
+  .balance-actions .btn-gold { flex: 1; }
+
+  .stats-row { display: flex; gap: 12px; margin: 16px 20px 0; }
+  .stat { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .stat-num { font-family: 'Sora'; font-weight: 700; font-size: 1.3rem; }
+  .stat-label { font-size: 0.76rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .section-head { margin: 26px 20px 12px; }
+  .section-head h2 { font-size: 1.2rem; font-weight: 700; }
+  .filters { display: flex; gap: 8px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+  .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .tasks, .list-pane { padding: 14px 20px 100px; display: flex; flex-direction: column; gap: 10px; }
+  .task { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .task.done { opacity: 0.55; }
+  .task-tag { width: 4px; align-self: stretch; border-radius: 4px; flex-shrink: 0; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-family: 'Sora'; font-weight: 700; font-size: 1.15rem; line-height: 1.3; }
+  .task-meta { font-size: 0.85rem; color: var(--ink-soft); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .task-cat { font-weight: 700; }
+  .task-meta .divider { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+  .task-pay { text-align: right; flex-shrink: 0; padding-left: 10px; }
+  .task-pay .amt { font-family: 'Sora'; font-weight: 800; font-size: 1.1rem; color: var(--emerald); white-space: nowrap; }
+  .task-pay .cur { font-size: 0.68rem; color: var(--ink-soft); display: block; }
+  .task-pay .go { display: inline-block; margin-top: 8px; font-size: 0.76rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; background: var(--ink); color: var(--paper); border: none; cursor: pointer; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--ink-soft); font-size: 0.88rem; }
+  .view { display: none; } .view.active { display: block; }
+
+  .wallet-hero { margin: 18px 20px 0; padding: 22px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); }
+  .wallet-hero .balance-amount { color: var(--ink); } .wallet-hero .unit { color: var(--ink-soft); }
+  .hist-item { display: flex; justify-content: space-between; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .hist-item .t { font-weight: 600; font-size: 0.9rem; }
+  .hist-item .s { font-size: 0.76rem; color: var(--ink-soft); margin-top: 2px; }
+  .a.plus { color: var(--emerald); font-family: 'Sora'; font-weight: 700; }
+  .a.minus { color: var(--danger); font-family: 'Sora'; font-weight: 700; }
+  .badge { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .badge.pending { background: rgba(242,183,5,0.18); color: var(--gold-deep); }
+
+  .profile-card { margin: 18px 20px 0; padding: 20px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); display: flex; gap: 14px; align-items: center; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--emerald); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Sora'; font-weight: 700; font-size: 1.2rem; }
+  .profile-name { font-weight: 700; } .profile-role { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .admin-box { margin: 20px 20px 0; padding: 18px; border-radius: 18px; border: 1px dashed var(--line); }
+  .admin-box h3 { font-size: 0.95rem; margin-bottom: 12px; }
+
+  nav.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--surface); border-top: 1px solid var(--line); display: flex; padding: 10px 8px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--ink-soft); font-size: 0.7rem; font-weight: 600; cursor: pointer; padding: 4px; }
+  .tab .dot { width: 20px; height: 20px; border-radius: 6px; background: var(--line); }
+  .tab.active { color: var(--emerald); } .tab.active .dot { background: var(--emerald); }
+
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(10,15,12,0.5); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+  .sheet-backdrop.open { display: flex; }
+  .sheet { width: 100%; max-width: 430px; background: var(--surface); border-radius: 22px 22px 0 0; padding: 22px 20px 30px; }
+  .sheet input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: 'Sora'; font-size: 1.2rem; font-weight: 700; margin-bottom: 14px; }
+  .sheet-close { width: 100%; text-align: center; padding: 10px; background: none; border: none; color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; z-index: 30; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--ink-soft); font-size: 0.9rem; }
+
+  /* ---- TASK DETAIL SHEET ---- */
+  .task-sheet { max-height: 85vh; overflow-y: auto; }
+  .task-sheet h3 { font-size: 1.15rem; margin-bottom: 4px; }
+  .task-sheet .meta-line { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 14px; }
+  .task-sheet .instructions { font-size: 0.9rem; line-height: 1.5; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+  .video-wrap { position: relative; width: 100%; padding-top: 56.25%; border-radius: 14px; overflow: hidden; background: #000; margin-bottom: 12px; }
+  .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+  .open-link-btn { display: block; text-align: center; width: 100%; padding: 13px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--sky); font-weight: 600; text-decoration: none; font-size: 0.9rem; margin-bottom: 12px; }
+  .countdown-box { text-align: center; padding: 14px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 14px; font-size: 0.85rem; color: var(--ink-soft); }
+  .countdown-box .num { font-family: 'Sora'; font-weight: 800; font-size: 1.6rem; color: var(--ink); display: block; }
+  .q-block { margin-bottom: 12px; }
+  .q-block label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 6px; }
+  .q-block input, .task-sheet textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans'; font-size: 0.9rem; }
+  .task-sheet textarea { min-height: 90px; resize: vertical; }
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; background: var(--paper); }
+  .check-row input { width: 18px; height: 18px; }
+  .word-count { font-size: 0.75rem; color: var(--ink-soft); text-align: right; margin-top: -8px; margin-bottom: 12px; }
+
+  /* ---- LANGUAGE SWITCH ---- */
+  .lang-switch { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+  .lang-switch button { padding: 7px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+  .lang-switch button.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .lang-switch-profile { display: flex; gap: 8px; margin: 18px 20px 0; }
+  .lang-switch-profile button { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 0.9rem; cursor: pointer; color: var(--ink-soft); }
+  .lang-switch-profile button.active { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+  .forgot-link { display: block; text-align: right; font-size: 0.82rem; color: var(--sky); margin: -4px 0 14px; text-decoration: none; }
+
+  /* ---- ACTIVITY TICKER ---- */
+  .ticker-wrap { margin: 14px 20px 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; overflow: hidden; }
+  .ticker-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .ticker-text { font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticker-text b { color: var(--ink); }
+
+  /* ---- PENDING APPROVAL SCREEN ---- */
+  #view-pending { display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 100vh; padding: 32px 24px; }
+  #view-pending .icon { font-size: 2.6rem; margin-bottom: 10px; }
+  #view-pending h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  #view-pending p { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.5; margin-bottom: 6px; }
+  .pay-info-box { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 16px 0; width: 100%; }
+  .pay-info-box .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.88rem; }
+  .pay-info-box .row b { font-family: 'Sora'; }
+
+  /* ---- ADMIN: PENDING REQUESTS ---- */
+  .req-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .req-card .name { font-weight: 700; font-size: 0.95rem; }
+  .req-card .meta { font-size: 0.8rem; color: var(--ink-soft); margin: 4px 0 10px; line-height: 1.5; }
+  .req-actions { display: flex; gap: 8px; }
+  .req-actions button { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+  .req-approve { background: var(--emerald); color: #fff; }
+  .req-reject { background: var(--surface); border: 1px solid var(--danger) !important; color: var(--danger); }
+  .share-row { display: flex; gap: 8px; margin-top: 10px; }
+  .share-row input { flex: 1; padding: 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); font-size: 0.82rem; }
+  .share-row button { padding: 11px 14px; border-radius: 10px; border: none; background: var(--ink); color: var(--paper); font-weight: 700; font-size: 0.82rem; cursor: pointer; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="loading-screen" id="loadingScreen">Inapakia…</div>
+
+  <!-- AUTH -->
+  <div id="view-auth" style="display:none">
+    <div class="lang-switch">
+      <button class="active" id="langSw">Kiswahili</button>
+      <button id="langEn">English</button>
+    </div>
+    <h1 id="tAppTitle">Kazi Ndogo</h1>
+    <p class="sub" id="authSub">Ingia kuanza kufanya kazi na kupata pesa</p>
+    <div class="field"><label id="tEmailLabel">Barua pepe</label><input type="email" id="authEmail" placeholder="wewe@mfano.com"></div>
+    <div id="signupExtraFields" style="display:none">
+      <div class="field"><label id="tNameLabel">Jina kamili</label><input type="text" id="authName" placeholder="Mfano: Amani Juma"></div>
+      <div class="field"><label id="tPhoneLabel">Namba ya simu</label><input type="tel" id="authPhone" placeholder="07XX XXX XXX"></div>
+    </div>
+    <div class="field"><label id="tPassLabel">Nenosiri</label><input type="password" id="authPass" placeholder="Angalau herufi 6"></div>
+    <a href="#" class="forgot-link" id="forgotLink">Umesahau nenosiri?</a>
+    <button class="btn btn-gold btn-block" id="authSubmit">Ingia</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="switch-mode"><span id="switchModeText">Huna akaunti? </span><a href="#" id="switchToSignup">Jisajili</a></div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" style="display:none">
+    <header>
+      <div>
+        <div class="greet-name" id="greetName">Habari</div>
+        <div class="greet-sub">Karibu tena</div>
+      </div>
+      <button class="logout" id="logoutBtn">Toka</button>
+    </header>
+
+    <div class="view active" id="view-home">
+      <div class="ticker-wrap" id="tickerWrap" style="display:none">
+        <div class="ticker-dot"></div>
+        <div class="ticker-text" id="tickerText"></div>
+      </div>
+      <div class="balance-card">
+        <div class="balance-label">Salio lako</div>
+        <div class="balance-amount"><span class="unit">TZS</span><span id="balanceNum">0</span></div>
+        <div class="balance-actions">
+          <button class="btn btn-gold" id="withdrawBtn">Toa Pesa</button>
+          <button class="btn btn-ghost" id="goHistoryBtn">Historia</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Kazi leo</div></div>
+        <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Kazi zote</div></div>
+        <div class="stat"><div class="stat-num">4.8</div><div class="stat-label">Kiwango</div></div>
+      </div>
+      <div class="section-head"><h2>Kazi zinazopatikana</h2></div>
+      <div class="filters" id="filters">
+        <button class="chip active" data-cat="all">Zote</button>
+        <button class="chip" data-cat="survey">Dodoso</button>
+        <button class="chip" data-cat="games">Michezo</button>
+        <button class="chip" data-cat="video">Video</button>
+        <button class="chip" data-cat="math">Hisabati</button>
+        <button class="chip" data-cat="form">Fomu</button>
+        <button class="chip" data-cat="social">Mitandao</button>
+        <button class="chip" data-cat="write">Uandishi</button>
+      </div>
+      <div class="tasks" id="taskList"></div>
+    </div>
+
+    <div class="view" id="view-wallet">
+      <div class="wallet-hero">
+        <div class="balance-label" style="color:var(--ink-soft)">Salio lako</div>
+        <div class="balance-amount"><span class="unit">TZS</span><span id="balanceNum2">0</span></div>
+        <button class="btn btn-gold btn-block" style="margin-top:16px" id="withdrawBtn2">Toa Pesa</button>
+      </div>
+      <div class="section-head"><h2>Historia</h2></div>
+      <div class="list-pane" id="historyList"></div>
+    </div>
+
+    <div class="view" id="view-post-task">
+      <div class="admin-box" style="margin-top:20px">
+        <h3>Tuma Kazi Yako Ichapishwe</h3>
+        <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:14px">Una kazi unayotaka watu wafanye (dodoso, kutazama video, n.k)? Jaza fomu hii, lipa ada ndogo ya kuchapisha, na timu yetu itaikagua na kuiweka hewani.</p>
+        <div class="field"><label>Aina ya kazi</label>
+          <select id="ctCat">
+            <option value="survey">Dodoso</option>
+            <option value="games">Michezo</option>
+            <option value="video">Kutazama Video</option>
+            <option value="write">Uandishi</option>
+            <option value="math">Hisabati</option>
+            <option value="form">Fomu</option>
+            <option value="social">Mitandao</option>
+          </select>
+        </div>
+        <div class="field" id="ctFieldLink"><label id="ctLinkLabel">Linki ya Video/Mchezo/Ukurasa</label><input id="ctLink" type="url" placeholder="https://..."></div>
+        <div class="field" id="ctFieldQuestions"><label id="ctQLabel">Maswali (moja kila mstari)</label><textarea id="ctQuestions" rows="3" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <div class="field" id="ctFieldAnswers"><label>Majibu sahihi (hiari, mpangilio ufanane na maswali)</label><textarea id="ctCorrectAnswers" rows="3" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <div class="field"><label>Malipo kwa kila mtu atakayefanya kazi (TZS)</label><input id="ctPay" type="number" placeholder="500"></div>
+        <div class="field"><label>Watu wangapi wanahitajika kufanya kazi hii?</label><input id="ctQuantity" type="number" placeholder="50"></div>
+        <div class="field"><label>Kazi ianze lini?</label><input id="ctStart" type="datetime-local"></div>
+        <div class="field"><label>Kazi imalizike lini?</label><input id="ctExpiry" type="datetime-local"></div>
+
+        <div class="pay-info-box">
+          <p style="margin-bottom:8px;font-weight:700;color:var(--ink)">Ada ya kuchapisha kazi</p>
+          <div class="row"><span id="ctInstructionsText">Lipa ada kwenye namba zifuatazo kisha weka namba ya muamala hapa chini.</span></div>
+          <div class="row"><span>M-Pesa</span><b id="ctMpesaNum">—</b></div>
+          <div class="row"><span>Tigo Pesa</span><b id="ctTigoNum">—</b></div>
+          <div class="row"><span>Ada</span><b id="ctFeeVal">—</b></div>
+        </div>
+        <div class="field"><label>Namba ya muamala (baada ya kulipa)</label><input id="ctPaymentRef" placeholder="Mfano: QK7X8..."></div>
+        <button class="btn btn-gold btn-block" id="submitTaskRequestBtn">Tuma Ombi la Kazi</button>
+      </div>
+      <div class="section-head"><h2>Maombi Yangu</h2></div>
+      <div class="list-pane" id="myTaskRequestsList" style="padding-bottom:100px"><div class="empty">Bado hujatuma ombi lolote.</div></div>
+    </div>
+
+    <div class="view" id="view-profile">
+      <div class="profile-card">
+        <div class="avatar" id="avatarInit">?</div>
+        <div><div class="profile-name" id="profileName">Mtumiaji</div><div class="profile-role" id="profileRole">Worker</div></div>
+      </div>
+      <div class="list-pane" style="padding-top:14px">
+        <div class="hist-item"><div><div class="t" id="tPhoneFieldLabel">Namba ya simu</div><div class="s" id="profilePhone">—</div></div></div>
+        <div class="hist-item"><div><div class="t" id="tEmailFieldLabel">Barua pepe</div><div class="s" id="profileEmail">—</div></div></div>
+      </div>
+      <div class="lang-switch-profile">
+        <button class="active" id="langSwProfile">Kiswahili</button>
+        <button id="langEnProfile">English</button>
+      </div>
+    </div>
+
+    <div class="view" id="view-admin">
+      <div class="admin-box" id="pendingReqBox" style="margin-top:20px">
+        <h3>Maombi ya Kutoa Pesa</h3>
+        <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:12px">Mtu akiomba kutoa pesa utaona hapa. Mlipe kwa M-Pesa/Tigo Pesa kwa namba yake, kisha bonyeza "Nimelipa".</p>
+        <div id="withdrawalReqList"><div class="empty">Hakuna maombi ya kutoa pesa kwa sasa.</div></div>
+      </div>
+
+      <div class="admin-box">
+        <h3>Maombi ya Kutuma Kazi (Wateja)</h3>
+        <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:12px">Wateja wanaotaka kuchapisha kazi yao wanaonekana hapa. Thibitisha malipo yao kisha "Idhinisha na Chapisha".</p>
+        <div id="taskReqList"><div class="empty">Hakuna maombi mapya kwa sasa.</div></div>
+      </div>
+
+      <div class="admin-box" id="adminBox">
+        <h3>1. Ongeza kazi mpya</h3>
+        <div class="field"><label>Aina ya kazi</label>
+          <select id="atCat">
+            <option value="survey">Dodoso</option>
+            <option value="games">Michezo</option>
+            <option value="video">Kutazama Video</option>
+            <option value="write">Uandishi</option>
+            <option value="math">Hisabati</option>
+            <option value="form">Fomu</option>
+            <option value="social">Mitandao</option>
+          </select>
+        </div>
+        <div class="field" id="fieldLink"><label id="linkFieldLabel">2. Linki ya Video/Mchezo/Ukurasa</label><input id="atLink" type="url" placeholder="https://..."></div>
+        <div class="field" id="fieldQuestions"><label id="qFieldLabel">2. Maswali (moja kila mstari)</label><textarea id="atQuestions" rows="3" placeholder="Una umri gani?&#10;Unaishi mkoa gani?" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <div class="field" id="fieldCorrectAnswers"><label>Majibu sahihi (moja kila mstari, mpangilio ufanane na maswali — acha wazi kama hakuna cha kuangalia)</label><textarea id="atCorrectAnswers" rows="3" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <div class="field"><label>3. Malipo (TZS)</label><input id="atPay" type="number"></div>
+        <div class="field"><label>Watu wangapi wanaruhusiwa kufanya kazi hii? (hiari, acha wazi kwa idadi isiyo na kikomo)</label><input id="atQuantity" type="number" placeholder="mfano: 50"></div>
+        <div class="field"><label>4. Kazi ianze lini?</label><input id="atStart" type="datetime-local"></div>
+        <div class="field"><label>Kazi imalizike lini? (muda kati ya hapa na "ianze lini" ndio muda wa kazi utakaoonekana kwa worker, mfano "Dakika 3")</label><input id="atExpiry" type="datetime-local"></div>
+        <button class="btn btn-gold btn-block" id="addTaskBtn">5. Fanya Kazi Hii Ionekane Sasa</button>
+      </div>
+
+      <div class="admin-box">
+        <h3>6. Usimamizi wa Data</h3>
+        <button class="btn btn-block" id="resetTasksBtn" style="background:var(--surface);border:1px solid var(--line);color:var(--danger);margin-bottom:10px">Futa Kazi Zote</button>
+        <button class="btn btn-block" id="clearActivityBtn" style="background:var(--surface);border:1px solid var(--line);color:var(--danger);margin-bottom:10px">Futa Historia ya Shughuli (Ticker)</button>
+        <button class="btn btn-block" id="resetOwnBtn" style="background:var(--surface);border:1px solid var(--line);color:var(--danger)">Futa Taarifa Zangu za Majaribio (kama Worker)</button>
+      </div>
+
+      <div class="admin-box">
+        <h3>7. Share Link ya App</h3>
+        <div class="share-row">
+          <input type="text" id="shareUrlInput" readonly>
+          <button id="shareBtn">Share</button>
+        </div>
+      </div>
+
+      <div class="admin-box">
+        <h3>Mipangilio ya Ada ya Kuchapisha Kazi (Wateja)</h3>
+        <div class="field"><label>Namba ya M-Pesa</label><input id="setMpesa" placeholder="07XX XXX XXX"></div>
+        <div class="field"><label>Namba ya Tigo Pesa</label><input id="setTigo" placeholder="06XX XXX XXX"></div>
+        <div class="field"><label>Ada ya kuchapisha kazi (TZS)</label><input id="setAmount" type="number" placeholder="2000"></div>
+        <div class="field"><label>Maelekezo ya ziada</label><textarea id="setInstructions" rows="2" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
+        <button class="btn btn-gold btn-block" id="savePaymentSettingsBtn">Hifadhi Mipangilio</button>
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <button class="tab active" data-view="home"><span class="dot"></span>Nyumbani</button>
+      <button class="tab" data-view="wallet"><span class="dot"></span>Wallet</button>
+      <button class="tab" data-view="post-task"><span class="dot"></span>Tuma Kazi</button>
+      <button class="tab" data-view="profile"><span class="dot"></span>Wasifu</button>
+      <button class="tab" data-view="admin" id="adminTab" style="display:none"><span class="dot"></span>Admin</button>
+    </nav>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop">
+    <div class="sheet">
+      <h3>Toa pesa</h3>
+      <p style="font-size:0.82rem;color:var(--ink-soft);margin-bottom:16px">Chini kabisa ni TZS 5,000.</p>
+      <input type="text" inputmode="numeric" id="withdrawInput" placeholder="Kiasi (TZS)">
+      <button class="btn btn-gold btn-block" id="confirmWithdraw">Thibitisha</button>
+      <button class="sheet-close" id="sheetClose">Ghairi</button>
+    </div>
+  </div>
+  <div class="sheet-backdrop" id="taskSheetBackdrop">
+    <div class="sheet task-sheet">
+      <h3 id="tsTitle">Kazi</h3>
+      <div class="meta-line" id="tsMeta"></div>
+      <div id="tsContent"></div>
+      <button class="btn btn-gold btn-block" id="tsSubmit" disabled>Kamilisha Kazi</button>
+      <button class="sheet-close" id="tsClose">Funga</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+  // ==== WEKA FIREBASE CONFIG YAKO HAPA ====
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-MMYvHue82jWv_bGzvfcs6MqFTLezme4",
+    authDomain: "home-online-jobs.firebaseapp.com",
+    projectId: "home-online-jobs",
+    storageBucket: "home-online-jobs.firebasestorage.app",
+    messagingSenderId: "648276796909",
+    appId: "1:648276796909:web:b2ed696b00fb8fb31f33e4"
+  };
+  const ADMIN_EMAIL = "yohananyamoga@gmail.com"; // wewe ndiye admin
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const SEED_TASKS = [
+    { cat: 'survey', title: 'Dodoso kuhusu tabia za ununuzi', pay: 500, minutes: 3,
+      instructions: 'Jibu maswali mafupi yafuatayo kwa uaminifu.',
+      questions: ['Unanunua vitu mtandaoni mara ngapi kwa mwezi?', 'Ni changamoto gani kubwa unapokutana nayo unaponunua mtandaoni?'] },
+    { cat: 'video', title: 'Tazama video fupi ya elimu', pay: 200, minutes: 2,
+      instructions: 'Tazama video mpaka mwisho kabla ya kubonyeza Kamilisha.',
+      link: 'https://www.youtube.com/watch?v=YE7VzlLtp-4' },
+    { cat: 'form', title: 'Ingiza taarifa za bidhaa 10', pay: 700, minutes: 8,
+      instructions: 'Andika kwa ufupi hatua utakazofuata kuhakikisha data ni sahihi.',
+      questions: ['Umepanga kufanyaje kazi hii?'] },
+    { cat: 'social', title: 'Fuata ukurasa wa mteja wetu', pay: 150, minutes: 1,
+      instructions: 'Fungua linki, fuata ukurasa, kisha thibitisha hapa.',
+      link: 'https://www.instagram.com' },
+    { cat: 'write', title: 'Tafsiri maelezo mafupi ya bidhaa', pay: 900, minutes: 10,
+      instructions: 'Tafsiri maelezo haya kwa Kiingereza kwenda Kiswahili: "This eco-friendly bag is made from recycled materials and lasts for years."' },
+  ];
+  const CAT_LABEL = { survey: 'Dodoso', video: 'Video', form: 'Fomu', social: 'Mitandao', write: 'Uandishi', games: 'Michezo', math: 'Hisabati' };
+  const CAT_COLOR = { survey: 'var(--cat-survey)', video: 'var(--cat-video)', form: 'var(--cat-form)', social: 'var(--cat-social)', write: 'var(--cat-write)', games: 'var(--cat-games)', math: 'var(--cat-math)' };
+
+  const $ = id => document.getElementById(id);
+  function money(n) { return Math.max(0, Math.round(n || 0)).toLocaleString('sw-TZ'); }
+  function showToast(msg) { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  let currentUser = null, isAdmin = false;
+  let tasksData = [];
+  let wallet = { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] };
+  let activeFilter = 'all';
+  let isSignupMode = false;
+  let currentLang = localStorage.getItem('kazi_lang') || 'sw';
+
+  const LANG = {
+    sw: {
+      appTitle: 'Kazi Ndogo', loginSub: 'Ingia kuanza kufanya kazi na kupata pesa', signupSub: 'Jaza taarifa kujisajili',
+      login: 'Ingia', signup: 'Jisajili', noAccount: 'Huna akaunti? ', haveAccount: 'Tayari una akaunti? ',
+      emailLabel: 'Barua pepe', passLabel: 'Nenosiri', forgot: 'Umesahau nenosiri?',
+      home: 'Nyumbani', wallet: 'Wallet', profile: 'Wasifu', logout: 'Toka',
+      balanceLabel: 'Salio lako', withdraw: 'Toa Pesa', history: 'Historia',
+      todayTasks: 'Kazi leo', totalTasks: 'Kazi zote', rating: 'Kiwango',
+      availableTasks: 'Kazi zinazopatikana', all: 'Zote',
+      nameLabel: 'Jina kamili', phoneLabel: 'Namba ya simu', phoneField: 'Namba ya simu', emailField: 'Barua pepe',
+    },
+    en: {
+      appTitle: 'Small Jobs', loginSub: 'Sign in to start earning', signupSub: 'Fill in your details to sign up',
+      login: 'Sign in', signup: 'Sign up', noAccount: "Don't have an account? ", haveAccount: 'Already have an account? ',
+      emailLabel: 'Email', passLabel: 'Password', forgot: 'Forgot password?',
+      home: 'Home', wallet: 'Wallet', profile: 'Profile', logout: 'Log out',
+      balanceLabel: 'Your balance', withdraw: 'Withdraw', history: 'History',
+      todayTasks: "Today's jobs", totalTasks: 'Total jobs', rating: 'Rating',
+      availableTasks: 'Available jobs', all: 'All',
+      nameLabel: 'Full name', phoneLabel: 'Phone number', phoneField: 'Phone number', emailField: 'Email',
+    }
+  };
+
+  function applyLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('kazi_lang', lang);
+    const t = LANG[lang];
+    document.querySelectorAll('#langSw, #langSwProfile').forEach(b => b.classList.toggle('active', lang === 'sw'));
+    document.querySelectorAll('#langEn, #langEnProfile').forEach(b => b.classList.toggle('active', lang === 'en'));
+    $('tAppTitle').textContent = t.appTitle;
+    $('authSub').textContent = isSignupMode ? t.signupSub : t.loginSub;
+    $('authSubmit').textContent = isSignupMode ? t.signup : t.login;
+    $('switchToSignup').textContent = isSignupMode ? t.login : t.signup;
+    $('switchModeText').textContent = isSignupMode ? t.haveAccount : t.noAccount;
+    $('tEmailLabel').textContent = t.emailLabel;
+    $('tPassLabel').textContent = t.passLabel;
+    $('forgotLink').textContent = t.forgot;
+    $('tNameLabel').textContent = t.nameLabel;
+    $('tPhoneLabel').textContent = t.phoneLabel;
+    $('tPhoneFieldLabel').textContent = t.phoneField;
+    $('tEmailFieldLabel').textContent = t.emailField;
+    document.querySelector('[data-view="home"]').lastChild.textContent = t.home;
+    document.querySelector('[data-view="wallet"]').lastChild.textContent = t.wallet;
+    document.querySelector('[data-view="profile"]').lastChild.textContent = t.profile;
+    $('logoutBtn').textContent = t.logout;
+    document.querySelectorAll('.balance-label').forEach(el => el.textContent = t.balanceLabel);
+    $('withdrawBtn').textContent = t.withdraw;
+    $('withdrawBtn2').textContent = t.withdraw;
+    $('goHistoryBtn').textContent = t.history;
+    document.querySelector('#view-wallet .section-head h2').textContent = t.history;
+    document.querySelector('#view-home .section-head h2').textContent = t.availableTasks;
+    document.querySelector('.chip[data-cat="all"]').textContent = t.all;
+    const labels = document.querySelectorAll('.stats-row .stat-label');
+    if (labels[0]) labels[0].textContent = t.todayTasks;
+    if (labels[1]) labels[1].textContent = t.totalTasks;
+    if (labels[2]) labels[2].textContent = t.rating;
+  }
+  $('langSw').addEventListener('click', () => applyLang('sw'));
+  $('langEn').addEventListener('click', () => applyLang('en'));
+  $('langSwProfile').addEventListener('click', () => applyLang('sw'));
+  $('langEnProfile').addEventListener('click', () => applyLang('en'));
+
+  // ---- AUTH UI ----
+  $('switchToSignup').addEventListener('click', (e) => {
+    e.preventDefault();
+    isSignupMode = !isSignupMode;
+    const t = LANG[currentLang];
+    $('authSub').textContent = isSignupMode ? t.signupSub : t.loginSub;
+    $('authSubmit').textContent = isSignupMode ? t.signup : t.login;
+    $('switchToSignup').textContent = isSignupMode ? t.login : t.signup;
+    $('switchModeText').textContent = isSignupMode ? t.haveAccount : t.noAccount;
+    $('signupExtraFields').style.display = isSignupMode ? 'block' : 'none';
+    $('authError').textContent = '';
+  });
+
+  $('forgotLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = $('authEmail').value.trim();
+    if (!email) { $('authError').textContent = currentLang === 'sw' ? 'Weka barua pepe yako kwanza' : 'Enter your email first'; return; }
+    try {
+      await auth.sendPasswordResetEmail(email);
+      showToast(currentLang === 'sw' ? 'Barua pepe ya kubadilisha nenosiri imetumwa' : 'Password reset email sent');
+    } catch (e2) { $('authError').textContent = e2.message; }
+  });
+
+  $('authSubmit').addEventListener('click', async () => {
+    const email = $('authEmail').value.trim();
+    const pass = $('authPass').value;
+    const name = $('authName').value.trim();
+    const phone = $('authPhone').value.trim();
+    $('authError').textContent = '';
+    if (!email || !pass) { $('authError').textContent = 'Jaza barua pepe na nenosiri'; return; }
+    if (isSignupMode && (!name || !phone)) { $('authError').textContent = 'Jaza jina na namba ya simu'; return; }
+    $('authSubmit').disabled = true;
+    try {
+      if (isSignupMode) {
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        await db.collection('users').doc(cred.user.uid).set({
+          name, phone, email, status: 'approved',
+          balance: 0, completedTaskIds: [], completedLog: [], withdrawals: []
+        });
+      } else {
+        await auth.signInWithEmailAndPassword(email, pass);
+      }
+    } catch (e) {
+      const map = {
+        'auth/email-already-in-use': 'Barua pepe hii tayari inatumika',
+        'auth/invalid-email': 'Barua pepe si sahihi',
+        'auth/weak-password': 'Nenosiri ni fupi mno (angalau herufi 6)',
+        'auth/user-not-found': 'Akaunti haipo, jisajili kwanza',
+        'auth/wrong-password': 'Nenosiri sio sahihi',
+        'auth/invalid-credential': 'Taarifa si sahihi',
+      };
+      $('authError').textContent = map[e.code] || ('Hitilafu: ' + e.message);
+    }
+    $('authSubmit').disabled = false;
+  });
+
+  $('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  // ---- VIEW SWITCHING ----
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchView(tab.dataset.view)));
+  $('goHistoryBtn').addEventListener('click', () => switchView('wallet'));
+  function switchView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    $('view-' + name).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+  }
+
+  $('filters').addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if (!chip) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active'); activeFilter = chip.dataset.cat; renderTasks();
+  });
+
+  const backdrop = $('sheetBackdrop');
+  function openWithdraw() { backdrop.classList.add('open'); }
+  $('withdrawBtn').addEventListener('click', openWithdraw);
+  $('withdrawBtn2').addEventListener('click', openWithdraw);
+  $('sheetClose').addEventListener('click', () => backdrop.classList.remove('open'));
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
+
+  $('confirmWithdraw').addEventListener('click', async () => {
+    const amount = parseInt(($('withdrawInput').value || '').replace(/[^0-9]/g, ''), 10);
+    if (!amount || amount < 5000) { showToast('Kiasi cha chini ni TZS 5,000'); return; }
+    if (amount > wallet.balance) { showToast('Salio lako haitoshi'); return; }
+    const wRef = db.collection('withdrawals').doc();
+    const entry = { id: wRef.id, amount, ts: Date.now(), status: 'pending' };
+    wallet.balance -= amount;
+    wallet.withdrawals = [...(wallet.withdrawals || []), entry];
+    await saveWallet();
+    try {
+      await wRef.set({ uid: currentUser.uid, name: wallet.name || '', phone: wallet.phone || '', email: currentUser.email, amount, status: 'pending', ts: Date.now() });
+    } catch (e) { /* wallet already updated; admin queue write is best-effort */ }
+    writeActivity('withdraw', amount);
+    $('withdrawInput').value = ''; backdrop.classList.remove('open');
+    showToast('Ombi la kutoa pesa limetumwa. Admin atakulipa kwa M-Pesa/Tigo Pesa.');
+  });
+
+  async function completeTask(taskId, proof) {
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task || wallet.completedTaskIds.includes(taskId)) return;
+    wallet.balance = (wallet.balance || 0) + task.pay;
+    wallet.completedTaskIds = [...wallet.completedTaskIds, taskId];
+    wallet.completedLog = [...(wallet.completedLog || []), { title: task.title, pay: task.pay, ts: Date.now(), proof: proof || null }];
+    renderWallet(); renderTasks();
+    showToast('✅ Sahihi! Umepata TZS ' + money(task.pay) + '!');
+    await saveWallet();
+    writeActivity('task', task.pay);
+    if (task.quantity) {
+      try { await db.collection('tasks').doc(taskId).update({ completionsCount: firebase.firestore.FieldValue.increment(1) }); }
+      catch (e) { /* best-effort; quantity cap may lag slightly if this fails */ }
+    }
+  }
+
+  async function writeActivity(type, amount) {
+    try { await db.collection('activity').add({ type, amount, ts: Date.now() }); } catch (e) { /* best-effort, ignore */ }
+  }
+
+  async function saveWallet() {
+    try { await db.collection('users').doc(currentUser.uid).set(wallet, { merge: false }); }
+    catch (e) { showToast('Imeshindwa kuhifadhi; angalia mtandao'); }
+  }
+
+  function toggleTaskFields() {
+    const cat = $('atCat').value;
+    const showLink = ['video', 'games', 'social'].includes(cat);
+    const showQuestions = ['survey', 'form', 'math'].includes(cat);
+    $('fieldLink').style.display = showLink ? 'block' : 'none';
+    $('fieldQuestions').style.display = showQuestions ? 'block' : 'none';
+    $('fieldCorrectAnswers').style.display = showQuestions ? 'block' : 'none';
+    $('linkFieldLabel').textContent = cat === 'games' ? '2. Linki ya Mchezo' : cat === 'social' ? '2. Linki ya Ukurasa' : '2. Linki ya Video';
+    $('qFieldLabel').textContent = cat === 'math' ? '2. Maswali ya Hisabati (moja kila mstari)' : '2. Maswali (moja kila mstari)';
+  }
+  $('atCat').addEventListener('change', toggleTaskFields);
+  toggleTaskFields();
+
+  $('addTaskBtn').addEventListener('click', async () => {
+    const pay = parseInt($('atPay').value || '0', 10);
+    const cat = $('atCat').value;
+    const title = CAT_LABEL[cat];
+    const link = $('atLink').value.trim();
+    const questions = $('atQuestions').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const correctAnswers = $('atCorrectAnswers').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const quantity = parseInt($('atQuantity').value || '0', 10) || null;
+    const startVal = $('atStart').value;
+    const expiryVal = $('atExpiry').value;
+    if (!pay || !startVal || !expiryVal) { showToast('Jaza malipo, muda wa kuanza, na muda wa kumaliza'); return; }
+    const availableFrom = new Date(startVal).getTime();
+    const expiresAt = new Date(expiryVal).getTime();
+    if (expiresAt <= availableFrom) { showToast('Muda wa kumaliza lazima uwe baada ya muda wa kuanza'); return; }
+    const minutes = Math.max(1, Math.round((expiresAt - availableFrom) / 60000));
+    try {
+      await db.collection('tasks').add({ cat, title, pay, minutes, instructions: '', link, questions, correctAnswers, quantity, completionsCount: 0, availableFrom, expiresAt, createdAt: Date.now() });
+      $('atPay').value = ''; $('atLink').value = ''; $('atQuestions').value = ''; $('atCorrectAnswers').value = ''; $('atQuantity').value = ''; $('atStart').value = ''; $('atExpiry').value = '';
+      showToast('Kazi imeongezwa — inaonekana kwa worker sasa hivi');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+
+  // ---- CLIENT: SUBMIT A TASK REQUEST (paid publishing) ----
+  function toggleClientTaskFields() {
+    const cat = $('ctCat').value;
+    const showLink = ['video', 'games', 'social'].includes(cat);
+    const showQuestions = ['survey', 'form', 'math'].includes(cat);
+    $('ctFieldLink').style.display = showLink ? 'block' : 'none';
+    $('ctFieldQuestions').style.display = showQuestions ? 'block' : 'none';
+    $('ctFieldAnswers').style.display = showQuestions ? 'block' : 'none';
+    $('ctLinkLabel').textContent = cat === 'games' ? 'Linki ya Mchezo' : cat === 'social' ? 'Linki ya Ukurasa' : 'Linki ya Video';
+    $('ctQLabel').textContent = cat === 'math' ? 'Maswali ya Hisabati (moja kila mstari)' : 'Maswali (moja kila mstari)';
+  }
+  $('ctCat').addEventListener('change', toggleClientTaskFields);
+  toggleClientTaskFields();
+
+  $('submitTaskRequestBtn').addEventListener('click', async () => {
+    const cat = $('ctCat').value;
+    const link = $('ctLink').value.trim();
+    const questions = $('ctQuestions').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const correctAnswers = $('ctCorrectAnswers').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const pay = parseInt($('ctPay').value || '0', 10);
+    const quantity = parseInt($('ctQuantity').value || '0', 10);
+    const startVal = $('ctStart').value;
+    const expiryVal = $('ctExpiry').value;
+    const paymentRef = $('ctPaymentRef').value.trim();
+    if (!pay || !quantity || !startVal || !expiryVal) { showToast('Jaza malipo, idadi ya watu, na muda'); return; }
+    if (!paymentRef) { showToast('Weka namba ya muamala baada ya kulipa ada'); return; }
+    const availableFrom = new Date(startVal).getTime();
+    const expiresAt = new Date(expiryVal).getTime();
+    if (expiresAt <= availableFrom) { showToast('Muda wa kumaliza lazima uwe baada ya muda wa kuanza'); return; }
+    try {
+      await db.collection('taskRequests').add({
+        uid: currentUser.uid, name: wallet.name || '', phone: wallet.phone || '', email: currentUser.email,
+        cat, link, questions, correctAnswers, pay, quantity, availableFrom, expiresAt, paymentRef,
+        status: 'pending', createdAt: Date.now()
+      });
+      ['ctLink','ctQuestions','ctCorrectAnswers','ctPay','ctQuantity','ctStart','ctExpiry','ctPaymentRef'].forEach(id => $(id).value = '');
+      showToast('Ombi limetumwa. Tutakukagua na kukuwasiliana hivi karibuni.');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+
+  function subscribeMyTaskRequests() {
+    db.collection('taskRequests').where('uid', '==', currentUser.uid).onSnapshot(snap => {
+      const box = $('myTaskRequestsList');
+      if (snap.empty) { box.innerHTML = '<div class="empty">Bado hujatuma ombi lolote.</div>'; return; }
+      const items = [];
+      snap.forEach(doc => items.push(doc.data()));
+      items.sort((a, b) => b.createdAt - a.createdAt);
+      box.innerHTML = '';
+      items.forEach(r => {
+        const badgeClass = r.status === 'approved' ? 'approved' : r.status === 'rejected' ? 'pending' : 'pending';
+        const badgeText = r.status === 'approved' ? 'Imechapishwa' : r.status === 'rejected' ? 'Imekataliwa' : 'Inasubiri ukaguzi';
+        const row = document.createElement('div');
+        row.className = 'hist-item';
+        row.innerHTML = `<div><div class="t"></div><div class="s"><span class="badge ${badgeClass}"></span></div></div>`;
+        row.querySelector('.t').textContent = CAT_LABEL[r.cat] + ' — watu ' + r.quantity;
+        row.querySelector('.badge').textContent = badgeText;
+        box.appendChild(row);
+      });
+    }, () => {});
+  }
+
+  function renderTasks() {
+    const list = $('taskList');
+    const now = Date.now();
+    const visible = tasksData.filter(t => (!t.expiresAt || t.expiresAt > now) && (!t.availableFrom || t.availableFrom <= now));
+    const filtered = visible.filter(t => activeFilter === 'all' || t.cat === activeFilter);
+    if (!filtered.length) { list.innerHTML = '<div class="empty">Hakuna kazi ya aina hii kwa sasa.</div>'; return; }
+    list.innerHTML = '';
+    filtered.forEach(t => {
+      const done = wallet.completedTaskIds.includes(t.id);
+      const row = document.createElement('div');
+      row.className = 'task' + (done ? ' done' : '');
+      row.innerHTML = `
+        <div class="task-tag" style="background:${CAT_COLOR[t.cat]}"></div>
+        <div class="task-body">
+          <div class="task-title"></div>
+          <div class="task-meta"><span class="task-cat" style="color:${CAT_COLOR[t.cat]}">${CAT_LABEL[t.cat]}</span><span class="divider"></span><span>Dakika ${t.minutes}</span></div>
+        </div>
+        <div class="task-pay">
+          <div class="amt">${money(t.pay)}</div><span class="cur">TZS</span>
+          <button class="go" ${done ? 'disabled' : ''} data-id="${t.id}">${done ? 'Imekamilika' : 'Anza'}</button>
+        </div>`;
+      row.querySelector('.task-title').textContent = t.title; // textContent: task titles are user/admin input
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.go:not(:disabled)').forEach(btn => btn.addEventListener('click', () => openTaskDetail(btn.dataset.id)));
+  }
+  setInterval(renderTasks, 30000); // periodically re-check so expired tasks disappear without a page reload
+
+  // ---- TASK DETAIL / PROOF-OF-WORK FLOW ----
+  let tsCountdownTimer = null;
+  let tsWatchDone = false;
+
+  function youtubeEmbed(url) {
+    const m = url.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  }
+
+  function openTaskDetail(taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task || wallet.completedTaskIds.includes(taskId)) return;
+    tsWatchDone = false;
+    if (tsCountdownTimer) clearInterval(tsCountdownTimer);
+    $('tsTitle').textContent = task.title;
+    $('tsMeta').textContent = CAT_LABEL[task.cat] + ' · Malipo TZS ' + money(task.pay) + ' · Dakika ' + task.minutes;
+    $('tsSubmit').disabled = true;
+    $('tsSubmit').dataset.id = taskId;
+
+    let html = '';
+    if (task.instructions) html += `<div class="instructions"></div>`;
+
+    if (task.cat === 'video' || task.cat === 'games') {
+      const embed = task.cat === 'video' && task.link ? youtubeEmbed(task.link) : null;
+      if (embed) {
+        html += `<div class="video-wrap"><iframe src="${embed}" allow="autoplay" allowfullscreen></iframe></div>`;
+      } else if (task.cat === 'games' && task.link) {
+        html += `<div class="video-wrap"><iframe src="${task.link}" allowfullscreen></iframe></div>`;
+      } else if (task.link) {
+        html += `<a class="open-link-btn" href="${task.link}" target="_blank" rel="noopener">${task.cat === 'games' ? 'Fungua Mchezo' : 'Fungua Video'}</a>`;
+      }
+      html += `<div class="countdown-box"><span class="num" id="tsCountdownNum">${task.minutes}:00</span>Subiri muda uishe ${task.cat === 'games' ? 'unapocheza' : 'unapotazama'}, kisha kitufe kitawashwa</div>`;
+    } else if (task.cat === 'social') {
+      if (task.link) html += `<a class="open-link-btn" href="${task.link}" target="_blank" rel="noopener">Fungua Linki</a>`;
+      html += `<div class="check-row"><input type="checkbox" id="tsCheck"><label for="tsCheck">Nimekamilisha kitendo kilichoombwa</label></div>`;
+    } else if ((task.cat === 'survey' || task.cat === 'form' || task.cat === 'math') && task.questions && task.questions.length) {
+      task.questions.forEach((q, i) => {
+        html += `<div class="q-block"><label></label><input type="text" class="ts-answer" data-q="${i}"></div>`;
+      });
+    } else if (task.cat === 'write') {
+      html += `<textarea id="tsWriteArea" placeholder="Andika jibu lako hapa..."></textarea><div class="word-count" id="tsWordCount">Maneno 0 / 8 yanahitajika</div>`;
+    } else {
+      // fallback generic proof field
+      html += `<textarea id="tsWriteArea" placeholder="Eleza ulichofanya..."></textarea><div class="word-count" id="tsWordCount">Maneno 0 / 5 yanahitajika</div>`;
+    }
+
+    $('tsContent').innerHTML = html;
+    if (task.instructions) $('tsContent').querySelector('.instructions').textContent = task.instructions;
+    if ((task.cat === 'survey' || task.cat === 'form' || task.cat === 'math') && task.questions && task.questions.length) {
+      $('tsContent').querySelectorAll('.q-block label').forEach((lab, i) => lab.textContent = task.questions[i]);
+      $('tsContent').querySelectorAll('.ts-answer').forEach(inp => inp.addEventListener('input', () => validateTaskDetail(task)));
+    }
+    if (task.cat === 'social') {
+      $('tsCheck').addEventListener('change', () => validateTaskDetail(task));
+    }
+    if (task.cat === 'write' || (!['video','games','social'].includes(task.cat) && !(task.questions && task.questions.length))) {
+      const minWords = task.cat === 'write' ? 8 : 5;
+      $('tsWriteArea').addEventListener('input', () => {
+        const words = $('tsWriteArea').value.trim().split(/\s+/).filter(Boolean).length;
+        $('tsWordCount').textContent = 'Maneno ' + words + ' / ' + minWords + ' yanahitajika';
+        $('tsSubmit').disabled = words < minWords;
+      });
+    }
+    if (task.cat === 'video' || task.cat === 'games') {
+      let secondsLeft = task.minutes * 60;
+      tsCountdownTimer = setInterval(() => {
+        secondsLeft--;
+        const mm = Math.floor(Math.max(secondsLeft,0) / 60), ss = Math.max(secondsLeft,0) % 60;
+        const el = $('tsCountdownNum'); if (el) el.textContent = mm + ':' + String(ss).padStart(2,'0');
+        if (secondsLeft <= 0) {
+          clearInterval(tsCountdownTimer); tsWatchDone = true;
+          $('tsSubmit').disabled = false;
+          const box = document.querySelector('.countdown-box'); if (box) box.lastChild.textContent = ' Umemaliza! Bonyeza Kamilisha Kazi.';
+        }
+      }, 1000);
+    }
+    $('taskSheetBackdrop').classList.add('open');
+  }
+
+  function validateTaskDetail(task) {
+    if (task.cat === 'social') { $('tsSubmit').disabled = !$('tsCheck').checked; return; }
+    if ((task.cat === 'survey' || task.cat === 'form' || task.cat === 'math') && task.questions && task.questions.length) {
+      const answers = [...$('tsContent').querySelectorAll('.ts-answer')].map(i => i.value.trim());
+      $('tsSubmit').disabled = answers.some(a => !a);
+    }
+  }
+
+  function closeTaskDetail() {
+    if (tsCountdownTimer) clearInterval(tsCountdownTimer);
+    $('taskSheetBackdrop').classList.remove('open');
+  }
+  $('tsClose').addEventListener('click', closeTaskDetail);
+  $('taskSheetBackdrop').addEventListener('click', e => { if (e.target === $('taskSheetBackdrop')) closeTaskDetail(); });
+
+  $('tsSubmit').addEventListener('click', async () => {
+    const taskId = $('tsSubmit').dataset.id;
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task) return;
+    let proof = null;
+    let passed = true;
+    if (task.cat === 'video' || task.cat === 'games') {
+      proof = { type: task.cat === 'games' ? 'game_played' : 'video_watched' };
+    } else if (task.cat === 'social') {
+      proof = { type: 'checked' };
+    } else if ((task.cat === 'survey' || task.cat === 'form' || task.cat === 'math') && task.questions && task.questions.length) {
+      const answers = [...$('tsContent').querySelectorAll('.ts-answer')].map(i => i.value.trim());
+      proof = { type: 'answers', answers };
+      if (task.correctAnswers && task.correctAnswers.length) {
+        passed = answers.every((a, i) => (a || '').trim().toLowerCase() === (task.correctAnswers[i] || '').trim().toLowerCase());
+      }
+    } else {
+      proof = { type: 'text', text: $('tsWriteArea').value.trim() };
+    }
+    closeTaskDetail();
+    if (passed) {
+      await completeTask(taskId, proof);
+    } else {
+      showToast('❌ Samahani, majibu si sahihi. Hujapata malipo — jaribu kazi nyingine.');
+    }
+  });
+
+  function renderWallet() {
+    $('balanceNum').textContent = money(wallet.balance);
+    $('balanceNum2').textContent = money(wallet.balance);
+    const today = new Date().toDateString();
+    $('statToday').textContent = (wallet.completedLog || []).filter(l => new Date(l.ts).toDateString() === today).length;
+    $('statTotal').textContent = wallet.completedTaskIds.length;
+
+    const items = [];
+    (wallet.completedLog || []).forEach(l => items.push({ type: 'task', ts: l.ts, title: l.title, amt: l.pay }));
+    (wallet.withdrawals || []).forEach(w => items.push({ type: 'withdraw', ts: w.ts, amt: w.amount, status: w.status }));
+    items.sort((a, b) => b.ts - a.ts);
+    const hist = $('historyList');
+    if (!items.length) { hist.innerHTML = '<div class="empty">Bado hujafanya kazi wala kuomba malipo.</div>'; return; }
+    hist.innerHTML = '';
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'hist-item';
+      if (it.type === 'task') {
+        row.innerHTML = `<div><div class="t"></div><div class="s"></div></div><div class="a plus">+${money(it.amt)}</div>`;
+        row.querySelector('.t').textContent = it.title;
+        row.querySelector('.s').textContent = new Date(it.ts).toLocaleDateString('sw-TZ');
+      } else {
+        row.innerHTML = `<div><div class="t">Ombi la kutoa pesa</div><div class="s"></div></div><div class="a minus">-${money(it.amt)}</div>`;
+        const s = row.querySelector('.s');
+        s.textContent = new Date(it.ts).toLocaleDateString('sw-TZ') + ' ';
+        const badge = document.createElement('span'); badge.className = 'badge pending'; badge.textContent = it.status === 'approved' ? 'Imelipwa' : 'Inasubiri';
+        s.appendChild(badge);
+      }
+      hist.appendChild(row);
+    });
+  }
+
+  async function seedTasksIfEmpty() {
+    const snap = await db.collection('tasks').limit(1).get();
+    if (snap.empty) { for (const t of SEED_TASKS) { await db.collection('tasks').add({ ...t, createdAt: Date.now() }); } }
+  }
+
+  function subscribeTasks() {
+    db.collection('tasks').orderBy('createdAt', 'asc').onSnapshot(snap => {
+      tasksData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTasks();
+    }, err => showToast('Imeshindwa kupakia kazi: ' + err.message));
+  }
+
+  function subscribeWallet() {
+    db.collection('users').doc(currentUser.uid).onSnapshot(snap => {
+      wallet = snap.exists ? { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [], ...snap.data() } : { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] };
+      renderWallet(); renderTasks();
+      if (wallet.name) { $('profileName').textContent = wallet.name; $('avatarInit').textContent = wallet.name.charAt(0).toUpperCase(); $('greetName').textContent = 'Habari, ' + wallet.name.split(' ')[0]; }
+      $('profilePhone').textContent = wallet.phone || '—';
+      $('mainApp').style.display = 'block';
+    }, err => showToast('Imeshindwa kupakia wallet: ' + err.message));
+  }
+
+  // ---- ACTIVITY TICKER ----
+  let tickerItems = [];
+  let tickerIdx = 0;
+  let tickerRotateTimer = null;
+  function subscribeActivity() {
+    db.collection('activity').orderBy('ts', 'desc').limit(15).onSnapshot(snap => {
+      tickerItems = snap.docs.map(d => d.data());
+      if (tickerItems.length) { $('tickerWrap').style.display = 'flex'; renderTickerItem(); }
+    }, () => {});
+  }
+  function renderTickerItem() {
+    if (!tickerItems.length) return;
+    const it = tickerItems[tickerIdx % tickerItems.length];
+    tickerIdx++;
+    const msg = it.type === 'withdraw'
+      ? (currentLang === 'sw' ? `💸 Mtumiaji ameomba kutoa <b>TZS ${money(it.amount)}</b>` : `💸 A user requested to withdraw <b>TZS ${money(it.amount)}</b>`)
+      : (currentLang === 'sw' ? `🎉 Mtumiaji amepata <b>TZS ${money(it.amount)}</b> kwa kukamilisha kazi` : `🎉 A user earned <b>TZS ${money(it.amount)}</b> completing a job`);
+    $('tickerText').innerHTML = msg;
+  }
+  if (!tickerRotateTimer) tickerRotateTimer = setInterval(renderTickerItem, 3800);
+
+  // ---- ADMIN: RESET TOOLS ----
+  $('resetTasksBtn').addEventListener('click', async () => {
+    if (!confirm(currentLang === 'sw' ? 'Hakikisha: hii itafuta kazi ZOTE zilizopo. Endelea?' : 'This will delete ALL current tasks. Continue?')) return;
+    try {
+      const snap = await db.collection('tasks').get();
+      for (const doc of snap.docs) { await db.collection('tasks').doc(doc.id).delete(); }
+      showToast('Kazi zote zimefutwa');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+  $('clearActivityBtn').addEventListener('click', async () => {
+    if (!confirm(currentLang === 'sw' ? 'Futa historia yote ya ticker (shughuli)?' : 'Clear all activity ticker history?')) return;
+    try {
+      const snap = await db.collection('activity').get();
+      for (const doc of snap.docs) { await db.collection('activity').doc(doc.id).delete(); }
+      $('tickerWrap').style.display = 'none'; tickerItems = [];
+      showToast('Historia ya shughuli imefutwa');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+
+  $('resetOwnBtn').addEventListener('click', async () => {
+    if (!confirm('Hii itafuta salio lako, historia ya kazi, na maombi ya malipo uliyofanya kama worker wa majaribio. Endelea?')) return;
+    try {
+      await db.collection('users').doc(currentUser.uid).update({ balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] });
+      showToast('Taarifa zako za majaribio zimefutwa');
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+
+  // ---- SHARE APP LINK ----
+  const APP_URL = 'https://kazi-ndogo.github.io/Kazi-ndogo/';
+  $('shareUrlInput').value = APP_URL;
+  $('shareBtn').addEventListener('click', async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Kazi Ndogo', text: 'Fanya kazi ndogo mtandaoni, pata pesa!', url: APP_URL }); }
+      catch (e) { /* user cancelled, ignore */ }
+    } else {
+      try { await navigator.clipboard.writeText(APP_URL); showToast('Link imenakiliwa!'); }
+      catch (e) { showToast(APP_URL); }
+    }
+  });
+
+  // ---- PAYMENT SETTINGS ----
+  async function loadPaymentSettingsPublic() {
+    try {
+      const snap = await db.collection('settings').doc('payment').get();
+      const d = snap.exists ? snap.data() : {};
+      $('ctMpesaNum').textContent = d.mpesa || 'Uliza admin';
+      $('ctTigoNum').textContent = d.tigo || 'Uliza admin';
+      $('ctFeeVal').textContent = d.amount ? ('TZS ' + money(d.amount)) : '—';
+      if (d.instructions) $('ctInstructionsText').textContent = d.instructions;
+    } catch (e) { /* settings not readable yet, ignore */ }
+  }
+  async function loadPaymentSettingsForAdmin() {
+    try {
+      const snap = await db.collection('settings').doc('payment').get();
+      const d = snap.exists ? snap.data() : {};
+      $('setMpesa').value = d.mpesa || '';
+      $('setTigo').value = d.tigo || '';
+      $('setAmount').value = d.amount || '';
+      $('setInstructions').value = d.instructions || '';
+    } catch (e) {}
+  }
+  $('savePaymentSettingsBtn').addEventListener('click', async () => {
+    try {
+      await db.collection('settings').doc('payment').set({
+        mpesa: $('setMpesa').value.trim(), tigo: $('setTigo').value.trim(),
+        amount: parseInt($('setAmount').value || '0', 10), instructions: $('setInstructions').value.trim()
+      });
+      showToast('Mipangilio ya malipo imehifadhiwa');
+      loadPaymentSettingsPublic();
+    } catch (e) { showToast('Imeshindwa: ' + e.message); }
+  });
+  loadPaymentSettingsPublic();
+
+  // ---- ADMIN: WITHDRAWAL PAYOUT QUEUE ----
+  function subscribeWithdrawalRequests() {
+    db.collection('withdrawals').where('status', '==', 'pending').onSnapshot(snap => {
+      const box = $('withdrawalReqList');
+      if (snap.empty) { box.innerHTML = '<div class="empty">Hakuna maombi ya kutoa pesa kwa sasa.</div>'; return; }
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const w = doc.data();
+        const card = document.createElement('div');
+        card.className = 'req-card';
+        card.innerHTML = `
+          <div class="name"></div>
+          <div class="meta"></div>
+          <div class="req-actions">
+            <button class="req-approve">Nimelipa</button>
+          </div>`;
+        card.querySelector('.name').textContent = 'TZS ' + money(w.amount) + ' — ' + (w.name || '(Hana jina)');
+        card.querySelector('.meta').textContent = `📞 ${w.phone || '—'}  ·  ✉️ ${w.email || '—'}  ·  ${new Date(w.ts).toLocaleString('sw-TZ')}`;
+        card.querySelector('.req-approve').addEventListener('click', async () => {
+          if (!confirm('Thibitisha umeshamtumia TZS ' + money(w.amount) + ' kwa njia halisi (M-Pesa/Tigo)?')) return;
+          try {
+            await db.collection('withdrawals').doc(doc.id).update({ status: 'paid' });
+            const uRef = db.collection('users').doc(w.uid);
+            const uSnap = await uRef.get();
+            if (uSnap.exists) {
+              const uData = uSnap.data();
+              const updated = (uData.withdrawals || []).map(x => x.id === doc.id ? { ...x, status: 'approved' } : x);
+              await uRef.update({ withdrawals: updated });
+            }
+            showToast('Imewekwa kama imelipwa');
+          } catch (e) { showToast('Imeshindwa: ' + e.message); }
+        });
+        box.appendChild(card);
+      });
+    }, () => {});
+  }
+
+  // ---- ADMIN: CLIENT TASK-REQUEST REVIEW ----
+  function subscribeClientTaskRequests() {
+    db.collection('taskRequests').where('status', '==', 'pending').onSnapshot(snap => {
+      const box = $('taskReqList');
+      if (snap.empty) { box.innerHTML = '<div class="empty">Hakuna maombi mapya kwa sasa.</div>'; return; }
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const r = doc.data();
+        const card = document.createElement('div');
+        card.className = 'req-card';
+        card.innerHTML = `
+          <div class="name"></div>
+          <div class="meta"></div>
+          <div class="req-actions">
+            <button class="req-approve">Idhinisha na Chapisha</button>
+            <button class="req-reject">Kataa</button>
+          </div>`;
+        card.querySelector('.name').textContent = CAT_LABEL[r.cat] + ' — TZS ' + money(r.pay) + ' × watu ' + r.quantity;
+        card.querySelector('.meta').textContent = `👤 ${r.name || '—'}  ·  📞 ${r.phone || '—'}  ·  💳 Ref: ${r.paymentRef || '—'}`;
+        card.querySelector('.req-approve').addEventListener('click', async () => {
+          if (!confirm('Thibitisha umepokea ada, na chapisha kazi hii sasa?')) return;
+          try {
+            const minutes = Math.max(1, Math.round((r.expiresAt - r.availableFrom) / 60000));
+            await db.collection('tasks').add({
+              cat: r.cat, title: CAT_LABEL[r.cat], pay: r.pay, minutes, instructions: '',
+              link: r.link || '', questions: r.questions || [], correctAnswers: r.correctAnswers || [],
+              quantity: r.quantity, completionsCount: 0,
+              availableFrom: r.availableFrom, expiresAt: r.expiresAt, createdAt: Date.now()
+            });
+            await db.collection('taskRequests').doc(doc.id).update({ status: 'approved' });
+            showToast('Kazi imechapishwa');
+          } catch (e) { showToast('Imeshindwa: ' + e.message); }
+        });
+        card.querySelector('.req-reject').addEventListener('click', async () => {
+          if (!confirm('Kataa ombi hili?')) return;
+          try { await db.collection('taskRequests').doc(doc.id).update({ status: 'rejected' }); showToast('Ombi limekataliwa'); }
+          catch (e) { showToast('Imeshindwa: ' + e.message); }
+        });
+        box.appendChild(card);
+      });
+    }, () => {});
+  }
+
+    $('loadingScreen').style.display = 'none';
+    applyLang(currentLang);
+    if (!user) {
+      currentUser = null;
+      $('mainApp').style.display = 'none';
+      $('view-auth').style.display = 'flex';
+      return;
+    }
+    currentUser = user;
+    isAdmin = (user.email === ADMIN_EMAIL);
+    $('view-auth').style.display = 'none';
+    $('greetName').textContent = 'Habari, ' + user.email.split('@')[0];
+    $('profileName').textContent = user.email;
+    $('profileRole').textContent = isAdmin ? 'Admin / Worker' : 'Worker';
+    $('avatarInit').textContent = user.email.charAt(0).toUpperCase();
+    $('profileEmail').textContent = user.email;
+    if (isAdmin) { $('adminTab').style.display = ''; subscribeWithdrawalRequests(); subscribeClientTaskRequests(); loadPaymentSettingsForAdmin(); }
+    subscribeTasks();
+    subscribeWallet();
+    subscribeActivity();
+    subscribeMyTaskRequests();
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
