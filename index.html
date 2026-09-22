@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kazi Ndogo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B6E4F">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kazi Ndogo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -166,6 +174,10 @@
     <h1 id="tAppTitle">Kazi Ndogo</h1>
     <p class="sub" id="authSub">Ingia kuanza kufanya kazi na kupata pesa</p>
     <div class="field"><label id="tEmailLabel">Barua pepe</label><input type="email" id="authEmail" placeholder="wewe@mfano.com"></div>
+    <div id="signupExtraFields" style="display:none">
+      <div class="field"><label id="tNameLabel">Jina kamili</label><input type="text" id="authName" placeholder="Mfano: Amani Juma"></div>
+      <div class="field"><label id="tPhoneLabel">Namba ya simu</label><input type="tel" id="authPhone" placeholder="07XX XXX XXX"></div>
+    </div>
     <div class="field"><label id="tPassLabel">Nenosiri</label><input type="password" id="authPass" placeholder="Angalau herufi 6"></div>
     <a href="#" class="forgot-link" id="forgotLink">Umesahau nenosiri?</a>
     <button class="btn btn-gold btn-block" id="authSubmit">Ingia</button>
@@ -228,11 +240,18 @@
         <div class="avatar" id="avatarInit">?</div>
         <div><div class="profile-name" id="profileName">Mtumiaji</div><div class="profile-role" id="profileRole">Worker</div></div>
       </div>
+      <div class="list-pane" style="padding-top:14px">
+        <div class="hist-item"><div><div class="t" id="tPhoneFieldLabel">Namba ya simu</div><div class="s" id="profilePhone">—</div></div></div>
+        <div class="hist-item"><div><div class="t" id="tEmailFieldLabel">Barua pepe</div><div class="s" id="profileEmail">—</div></div></div>
+      </div>
       <div class="lang-switch-profile">
         <button class="active" id="langSwProfile">Kiswahili</button>
         <button id="langEnProfile">English</button>
       </div>
-      <div class="admin-box" id="adminBox" style="display:none">
+    </div>
+
+    <div class="view" id="view-admin">
+      <div class="admin-box" id="adminBox" style="margin-top:20px">
         <h3>Ongeza kazi mpya (Admin)</h3>
         <div class="field"><label>Jina la kazi</label><input id="atTitle"></div>
         <div class="field"><label>Aina</label>
@@ -242,7 +261,8 @@
           </select>
         </div>
         <div class="field"><label>Malipo (TZS)</label><input id="atPay" type="number"></div>
-        <div class="field"><label>Muda (dakika)</label><input id="atMin" type="number"></div>
+        <div class="field"><label>Muda wa kufanya kazi (dakika)</label><input id="atMin" type="number"></div>
+        <div class="field"><label>Kazi ipotee lini? (hiari — ikipita, kazi haitaonekana tena)</label><input id="atExpiry" type="datetime-local"></div>
         <div class="field"><label>Maelekezo ya kazi (yataonekana kwa worker)</label><textarea id="atInstructions" rows="3" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
         <div class="field"><label>Linki (kwa Video au Mitandao — hiari)</label><input id="atLink" type="url" placeholder="https://..."></div>
         <div class="field"><label>Maswali (kwa Dodoso/Fomu — moja kila mstari, hiari)</label><textarea id="atQuestions" rows="3" placeholder="Una umri gani?&#10;Unaishi mkoa gani?" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans';font-size:0.9rem"></textarea></div>
@@ -258,6 +278,7 @@
       <button class="tab active" data-view="home"><span class="dot"></span>Nyumbani</button>
       <button class="tab" data-view="wallet"><span class="dot"></span>Wallet</button>
       <button class="tab" data-view="profile"><span class="dot"></span>Wasifu</button>
+      <button class="tab" data-view="admin" id="adminTab" style="display:none"><span class="dot"></span>Admin</button>
     </nav>
   </div>
 
@@ -341,6 +362,7 @@
       balanceLabel: 'Salio lako', withdraw: 'Toa Pesa', history: 'Historia',
       todayTasks: 'Kazi leo', totalTasks: 'Kazi zote', rating: 'Kiwango',
       availableTasks: 'Kazi zinazopatikana', all: 'Zote',
+      nameLabel: 'Jina kamili', phoneLabel: 'Namba ya simu', phoneField: 'Namba ya simu', emailField: 'Barua pepe',
     },
     en: {
       appTitle: 'Small Jobs', loginSub: 'Sign in to start earning', signupSub: 'Fill in your details to sign up',
@@ -350,6 +372,7 @@
       balanceLabel: 'Your balance', withdraw: 'Withdraw', history: 'History',
       todayTasks: "Today's jobs", totalTasks: 'Total jobs', rating: 'Rating',
       availableTasks: 'Available jobs', all: 'All',
+      nameLabel: 'Full name', phoneLabel: 'Phone number', phoneField: 'Phone number', emailField: 'Email',
     }
   };
 
@@ -367,6 +390,10 @@
     $('tEmailLabel').textContent = t.emailLabel;
     $('tPassLabel').textContent = t.passLabel;
     $('forgotLink').textContent = t.forgot;
+    $('tNameLabel').textContent = t.nameLabel;
+    $('tPhoneLabel').textContent = t.phoneLabel;
+    $('tPhoneFieldLabel').textContent = t.phoneField;
+    $('tEmailFieldLabel').textContent = t.emailField;
     document.querySelector('[data-view="home"]').lastChild.textContent = t.home;
     document.querySelector('[data-view="wallet"]').lastChild.textContent = t.wallet;
     document.querySelector('[data-view="profile"]').lastChild.textContent = t.profile;
@@ -397,6 +424,7 @@
     $('authSubmit').textContent = isSignupMode ? t.signup : t.login;
     $('switchToSignup').textContent = isSignupMode ? t.login : t.signup;
     $('switchModeText').textContent = isSignupMode ? t.haveAccount : t.noAccount;
+    $('signupExtraFields').style.display = isSignupMode ? 'block' : 'none';
     $('authError').textContent = '';
   });
 
@@ -413,12 +441,18 @@
   $('authSubmit').addEventListener('click', async () => {
     const email = $('authEmail').value.trim();
     const pass = $('authPass').value;
+    const name = $('authName').value.trim();
+    const phone = $('authPhone').value.trim();
     $('authError').textContent = '';
     if (!email || !pass) { $('authError').textContent = 'Jaza barua pepe na nenosiri'; return; }
+    if (isSignupMode && (!name || !phone)) { $('authError').textContent = 'Jaza jina na namba ya simu'; return; }
     $('authSubmit').disabled = true;
     try {
       if (isSignupMode) {
-        await auth.createUserWithEmailAndPassword(email, pass);
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        await db.collection('users').doc(cred.user.uid).set({
+          name, phone, email, balance: 0, completedTaskIds: [], completedLog: [], withdrawals: []
+        });
       } else {
         await auth.signInWithEmailAndPassword(email, pass);
       }
@@ -501,17 +535,21 @@
     const instructions = $('atInstructions').value.trim();
     const link = $('atLink').value.trim();
     const questions = $('atQuestions').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const expiryVal = $('atExpiry').value;
+    const expiresAt = expiryVal ? new Date(expiryVal).getTime() : null;
     if (!title || !pay || !minutes) { showToast('Jaza taarifa zote'); return; }
     try {
-      await db.collection('tasks').add({ cat, title, pay, minutes, instructions, link, questions, createdAt: Date.now() });
-      $('atTitle').value = ''; $('atPay').value = ''; $('atMin').value = ''; $('atInstructions').value = ''; $('atLink').value = ''; $('atQuestions').value = '';
+      await db.collection('tasks').add({ cat, title, pay, minutes, instructions, link, questions, expiresAt, createdAt: Date.now() });
+      $('atTitle').value = ''; $('atPay').value = ''; $('atMin').value = ''; $('atInstructions').value = ''; $('atLink').value = ''; $('atQuestions').value = ''; $('atExpiry').value = '';
       showToast('Kazi imeongezwa');
     } catch (e) { showToast('Imeshindwa: ' + e.message); }
   });
 
   function renderTasks() {
     const list = $('taskList');
-    const filtered = tasksData.filter(t => activeFilter === 'all' || t.cat === activeFilter);
+    const now = Date.now();
+    const visible = tasksData.filter(t => !t.expiresAt || t.expiresAt > now);
+    const filtered = visible.filter(t => activeFilter === 'all' || t.cat === activeFilter);
     if (!filtered.length) { list.innerHTML = '<div class="empty">Hakuna kazi ya aina hii kwa sasa.</div>'; return; }
     list.innerHTML = '';
     filtered.forEach(t => {
@@ -533,6 +571,7 @@
     });
     list.querySelectorAll('.go:not(:disabled)').forEach(btn => btn.addEventListener('click', () => openTaskDetail(btn.dataset.id)));
   }
+  setInterval(renderTasks, 30000); // periodically re-check so expired tasks disappear without a page reload
 
   // ---- TASK DETAIL / PROOF-OF-WORK FLOW ----
   let tsCountdownTimer = null;
@@ -690,6 +729,8 @@
     db.collection('users').doc(currentUser.uid).onSnapshot(snap => {
       wallet = snap.exists ? { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [], ...snap.data() } : { balance: 0, completedTaskIds: [], completedLog: [], withdrawals: [] };
       renderWallet(); renderTasks();
+      if (wallet.name) { $('profileName').textContent = wallet.name; $('avatarInit').textContent = wallet.name.charAt(0).toUpperCase(); $('greetName').textContent = 'Habari, ' + wallet.name.split(' ')[0]; }
+      $('profilePhone').textContent = wallet.phone || '—';
     }, err => showToast('Imeshindwa kupakia wallet: ' + err.message));
   }
 
@@ -751,11 +792,18 @@
     $('profileName').textContent = user.email;
     $('profileRole').textContent = isAdmin ? 'Admin / Worker' : 'Worker';
     $('avatarInit').textContent = user.email.charAt(0).toUpperCase();
-    if (isAdmin) { $('adminBox').style.display = 'block'; await seedTasksIfEmpty(); }
+    $('profileEmail').textContent = user.email;
+    if (isAdmin) { $('adminTab').style.display = ''; await seedTasksIfEmpty(); }
     subscribeTasks();
     subscribeWallet();
     subscribeActivity();
   });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
